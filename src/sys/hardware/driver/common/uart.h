@@ -1,0 +1,6 @@
+#ifndef _SYS_HARDWARE_DRIVER_COMMON_UART_H
+#define _SYS_HARDWARE_DRIVER_COMMON_UART_H
+
+void uart_init();
+
+#endif /* _SYS_HARDWARE_DRIVER_COMMON_UART_H */

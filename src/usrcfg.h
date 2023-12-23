@@ -1,0 +1,14 @@
+#ifndef _USRCFG_H
+#define _USRCFG_H
+
+#define LOG_FMTBUFFER_SIZE 256
+
+#define PNP_NORMAL_CLOSED 0
+#define PNP_NORMAL_OPEN   1
+#define NPN_NORMAL_CLOSED 2
+#define NPN_NORMAL_OPEN   3
+#ifndef UMAIIDX_PHOTO_INTERRUPTER
+  #define UMAIIDX_PHOTO_INTERRUPTER NPN_NORMAL_OPEN
+#endif
+
+#endif /* _USRCFG_H */

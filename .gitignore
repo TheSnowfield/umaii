@@ -1,0 +1,11 @@
+.eide/
+.vscode/
+build/
+DebugConfig/
+tools/lib/__pycache__/
+
+.clang-format
+.eide.usr.ctx.json
+EventRecorderStub.scvd
+*.uvguix.*
+*.uvoptx
