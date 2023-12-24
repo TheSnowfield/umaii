@@ -59,5 +59,6 @@ typedef enum {
 void ws2812_init(uint8_t leds);
 void ws2812_clear(ws2812_color_t color);
 void ws2812_dma_enable(bool en);
+void ws2812_set_pixel(size_t index, ws2812_color_t color);
 
 #endif /* _SYS_HARDWARE_DRIVER_WS2812_H */

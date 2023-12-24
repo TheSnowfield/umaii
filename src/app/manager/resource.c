@@ -1,4 +1,4 @@
-#include <rucfs/rucfs.h>
+#include <rucfs.h>
 #include "resource.h"
 
 typedef struct {

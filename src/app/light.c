@@ -25,8 +25,19 @@ static void __anim_renderer_rainbow_spin(uint64_t time) {
  */
 static void __anim_renderer_white_spin(uint64_t time) {
 
-  size_t _frame;
-  tls_get_value(1, &_freq);
+  size_t _mid = (time / 24) % 23;
+  int8_t _off_s1 = _mid - 1;
+  int8_t _off_s2 = _mid - 2;
+  int8_t _off_a1 = _mid + 1;
+  int8_t _off_a2 = _mid + 2;
+
+  ws2812_clear( ws2812_rgb(0,0,0)); {
+    ws2812_set_pixel(_off_s2 < 0 ? 23 + _off_s2 : _off_s2, ws2812_rgb(5, 5, 5));
+    ws2812_set_pixel(_off_s1 < 0 ? 23 + _off_s1 : _off_s1, ws2812_rgb(50, 50, 50));
+    ws2812_set_pixel(_mid, ws2812_rgb(255, 255, 255));
+    ws2812_set_pixel(_off_a1 > 23 ? _off_a1 - 23 : _off_a1, ws2812_rgb(50, 50, 50));
+    ws2812_set_pixel(_off_a2 > 23 ? _off_a2 - 23 : _off_a2, ws2812_rgb(5, 5, 5));
+  }
 
 }
 
