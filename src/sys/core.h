@@ -3,6 +3,7 @@
 
 typedef enum {
   err_ok,
+  err_hwinit,
   err_dfu_mode,
   err_fatal_error,
   err_task_timeout,

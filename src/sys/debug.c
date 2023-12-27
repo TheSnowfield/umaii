@@ -1,58 +1,47 @@
 #include <stdio.h>
-#include <stdarg.h>
 #include <stddef.h>
 
+#include <sys/debug.h>
 #include <usrcfg.h>
 
-#include "log.h"
+static log_print_cb_t _callback = NULL;
 
-void log_base(loglevel_t level, const char* tag, const char* fmt, va_list args) {
-
-  // format log string
-  char _logbuf[LOG_FMTBUFFER_SIZE];
-  vsnprintf(_logbuf, LOG_FMTBUFFER_SIZE, fmt, args);
-
-  // print logs
-  // _port_logging(&(orcinus_loginfo_t) {
-  //   .level = level,
-  //   .tag = tag,
-  //   .content = _logbuf
-  // });
-
+void log_set_cb(log_print_cb_t callback) {
+  _callback = callback;
 }
 
 void log_debug(const char* tag, const char* fmt, ...) {
   va_list _args;
   va_start(_args, fmt);
-  log_base(loglevel_debug, tag, fmt, _args);
+  if(_callback) _callback(loglevel_debug, tag, fmt, _args);
   va_end(_args);
 }
 
 void log_info(const char* tag, const char* fmt, ...) {
   va_list _args;
   va_start(_args, fmt);
-  log_base(loglevel_info, tag, fmt, _args);
+  if(_callback) _callback(loglevel_info, tag, fmt, _args);
   va_end(_args);
 }
 
 void log_warning(const char* tag, const char* fmt, ...) {
   va_list _args;
   va_start(_args, fmt);
-  log_base(loglevel_warning, tag, fmt, _args);
+  if(_callback) _callback(loglevel_warning, tag, fmt, _args);
   va_end(_args);
 }
 
 void log_error(const char* tag, const char* fmt, ...) {
   va_list _args;
   va_start(_args, fmt);
-  log_base(loglevel_error, tag, fmt, _args);
+  if(_callback) _callback(loglevel_error, tag, fmt, _args);
   va_end(_args);
 }
 
 void log_fatal(const char* tag, const char* fmt, ...) {
   va_list _args;
   va_start(_args, fmt);
-  log_base(loglevel_fatal, tag, fmt, _args);
+  if(_callback) _callback(loglevel_fatal, tag, fmt, _args);
   va_end(_args);
 }
 

@@ -1,13 +1,17 @@
 #include <sys/fault.h>
+#include <sys/debug.h>
 #include <driver/config.h>
-#include <usrcfg.h>
-
 #include <frost/api.h>
+#include <usrcfg.h>
 
 #include "gamebtn.h"
 
 static gamebtn_stat_t _stat_mask;
 static gamebtn_stat_t _old_status;
+
+#define GAMEBTN_PORT GPIOA
+#define GAMEBTN_PIN (GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | \
+                     GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_15)
 
 /**
  * @brief initialize the game button
@@ -15,15 +19,15 @@ static gamebtn_stat_t _old_status;
  * @param pull gpio pull mode
  */
 static void __init_button(uint32_t mode, uint32_t pull) {
-  HAL_GPIO_DeInit(GPIO_PORT_GAMEBTN, GPIO_GAMEBTN.Pin);
-  HAL_GPIO_Init(GPIO_PORT_GAMEBTN, &(GPIO_InitTypeDef) {
-    .Pin = GPIO_GAMEBTN.Pin,
+  HAL_GPIO_DeInit(GAMEBTN_PORT, GAMEBTN_PIN);
+  HAL_GPIO_Init(GAMEBTN_PORT, &(GPIO_InitTypeDef) {
+    .Pin = GAMEBTN_PIN,
     .Mode = mode,
     .Pull = pull,
     .Speed = GPIO_SPEED_FREQ_VERY_HIGH
   });
 
-  HAL_GPIO_WritePin(GPIO_PORT_GAMEBTN, GAMEBTN_IOMASK, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GAMEBTN_PORT, GAMEBTN_IOMASK, GPIO_PIN_SET);
 }
 
 /**
@@ -40,7 +44,7 @@ static status_t __get_bad_button_reason(gamebtn_stat_t state, gamebtn_stat_t exp
  * @return uint16_t status
  */
 static gamebtn_stat_t __button_status() {
-  return (gamebtn_stat_t)GPIO_PORT_GAMEBTN->IDR & GAMEBTN_IOMASK;
+  return ((gamebtn_stat_t)GAMEBTN_PORT->IDR & GAMEBTN_IOMASK) ^ _stat_mask;
 }
 
 /**
@@ -59,6 +63,8 @@ void __exti_gamebtn_handler(uint16_t pin) {
   // update button state
   gamebtn_stat_t _newstat = __button_status();
   if(_newstat != _old_status) {
+
+    log_debug(TAG, "old: %d, new: %d", _old_status, _newstat);
     _old_status = _newstat;
 
     // _newstat
@@ -82,6 +88,8 @@ void gamebtn_init() {
     _stat_mask = 0; // do not invert value
     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLUP);
 
+    log_info(TAG, "photo interrupter type: npn-normal-closed");
+
   #elif UMAIIDX_PHOTO_INTERRUPTER == PNP_NORMAL_CLOSED
 
     // PNP type normal closed photo interrupters
@@ -89,12 +97,16 @@ void gamebtn_init() {
     // triged: pull up, HIGH
     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLDOWN);
 
+    log_info(TAG, "photo interrupter type: pnp-normal-closed");
+
   #elif UMAIIDX_PHOTO_INTERRUPTER == NPN_NORMAL_OPEN
 
     // NPN type normal open photo interrupters
     // normal: pull down, LOW
     // triged: high resistance (gpio internal pulled up), HIGH
     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLUP);
+
+    log_info(TAG, "photo interrupter type: npn-normal-open");
 
   #elif UMAIIDX_PHOTO_INTERRUPTER == PNP_NORMAL_OPEN
 
@@ -104,43 +116,11 @@ void gamebtn_init() {
     _stat_mask = 0; // do not invert value
     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLDOWN);
 
+    log_info(TAG, "photo interrupter type: pnp-normal-open");
+
   #elif
     #error "Please define your photo interrupter type in the 'config.h'"
   #endif
-
-    // switch(userconf.photointpr_type) {
-    
-    //   // NPN type normal closed photo interrupters
-    //   // normal: high resistance (gpio internal pulled up) HIGH
-    //   // triged: pull down, LOW
-    //   case photointpr_type_npn_nc:
-    //     _stat_mask = 0; // do not invert value
-    //     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLUP);
-    //   break;
-
-    //   // PNP type normal closed photo interrupters
-    //   // normal: high resistance (gpio internal pulled down), DOWN
-    //   // triged: pull up, HIGH
-    //   case photointpr_type_pnp_nc:
-    //     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLDOWN);
-    //   break;
-
-    //   // NPN type normal open photo interrupters
-    //   // normal: pull down, LOW
-    //   // triged: high resistance (gpio internal pulled up), HIGH
-    //   case photointpr_type_npn_no:
-    //     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLUP);
-    //   break;
-
-    //   // PNP type normal open photo interrupters
-    //   // normal: pull up, HIGH
-    //   // triged: high resistance (gpio internal pulled down), DOWN
-    //   case photointpr_type_pnp_no:
-    //     _stat_mask = 0; // do not invert value
-    //     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLDOWN);
-    //   break;
-
-    // }
 
     // initial state check
     // if((_pull == GPIO_PULLUP   && (_state = __button_status()) != 0) ||
@@ -159,6 +139,8 @@ void gamebtn_init() {
     // save button state as initial state
     _old_status = __button_status();
   }
+
+  log_info(TAG, "game button initialized");
 
 }
 

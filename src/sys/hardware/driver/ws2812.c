@@ -1,4 +1,4 @@
-#include <utils/log.h>
+#include <sys/debug.h>
 #include "driver/ws2812.h"
 #include "driver/config.h"
 
@@ -44,11 +44,36 @@ typedef struct {
 
 } ws2812_framebuf_t;
 
-#define H (ws2812_bit_high)
-#define L (ws2812_bit_low)
-#define R (ws2812_bit_zero)
-#define ALIGN (R,R,R,R,R,R,R,R)
-#define RST (ALIGN,ALIGN,ALIGN,ALIGN)
+#define WS2812_PORT GPIOB
+#define WS2812_PIN GPIO_PIN_15
+
+SPI_HandleTypeDef spi2 = {
+  .Instance = SPI2,
+  .Init.Mode = SPI_MODE_MASTER,
+  .Init.Direction = SPI_DIRECTION_1LINE,
+  .Init.DataSize = SPI_DATASIZE_8BIT,
+  .Init.CLKPolarity = SPI_POLARITY_LOW,
+  .Init.CLKPhase = SPI_PHASE_2EDGE,
+  .Init.NSS = SPI_NSS_SOFT,
+  .Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8,
+  .Init.FirstBit = SPI_FIRSTBIT_MSB,
+  .Init.TIMode = SPI_TIMODE_DISABLE,
+  .Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE,
+  .Init.CRCPolynomial = 7
+};
+
+DMA_HandleTypeDef dma_spi2 = {
+  .Instance = DMA1_Stream4,
+  .Init.Channel = DMA_CHANNEL_0,
+  .Init.Direction = DMA_MEMORY_TO_PERIPH,
+  .Init.PeriphInc = DMA_PINC_DISABLE,
+  .Init.MemInc = DMA_MINC_ENABLE,
+  .Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE,
+  .Init.MemDataAlignment = DMA_MDATAALIGN_BYTE,
+  .Init.Mode = DMA_CIRCULAR,
+  .Init.Priority = DMA_PRIORITY_LOW,
+  .Init.FIFOMode = DMA_FIFOMODE_DISABLE
+};
 
 static ws2812_framebuf_t _ws2812_frame;
 
@@ -58,7 +83,13 @@ void ws2812_init(uint8_t leds) {
   __HAL_RCC_SPI2_CLK_ENABLE(); {
 
     // init ws2812 gpio
-    HAL_GPIO_Init(GPIO_PORT_WS2812_DOUT, &GPIO_WS2812);
+    HAL_GPIO_Init(WS2812_PORT, &(GPIO_InitTypeDef) {
+      .Pin = WS2812_PIN,
+      .Mode = GPIO_MODE_AF_OD,
+      .Pull = GPIO_PULLDOWN,
+      .Speed = GPIO_SPEED_FREQ_VERY_HIGH,
+      .Alternate = GPIO_AF5_SPI2
+    });
 
     // init spi peripheral
     if((HAL_SPI_Init(&spi2) != HAL_OK)) {

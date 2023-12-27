@@ -1,7 +1,8 @@
-#ifndef _UTILS_LOG_H
-#define _UTILS_LOG_H
+#ifndef _SYS_DEBUG_H
+#define _SYS_DEBUG_H
 
 #include <stddef.h>
+#include <stdarg.h>
 
 typedef enum {
   loglevel_debug   = 0,
@@ -20,6 +21,8 @@ typedef enum {
   #warning "Your compiler may not supported __func__ macro, so defined the TAG as '---'"
   #define TAG "---"
 #endif
+
+typedef void (* log_print_cb_t)(loglevel_t level, const char* tag, const char* fmt, va_list args);
 
 /**
  * @brief log debug
@@ -74,4 +77,11 @@ void log_fatal(const char* tag, const char* fmt, ...);
 */
 void hexdump(const char* tag, const unsigned char* buf, size_t len);
 
-#endif /* _UTILS_LOG_H */
+/**
+ * @brief set log callback
+ *
+ * @param callback
+ */
+void log_set_cb(log_print_cb_t callback);
+
+#endif /* _SYS_DEBUG_H */

@@ -1,6 +1,8 @@
 #ifndef _SYS_HARDWARE_CONFIG_H
 #define _SYS_HARDWARE_CONFIG_H
 
+#warning "[Obslete] this file will be removed in the future"
+
 #include <stm32f4xx.h>
 #include <stm32f4xx_hal.h>
 #include <stm32f4xx_hal_i2c.h>
@@ -16,12 +18,6 @@
 #include <stm32f4xx_hal_pcd.h>
 #include <stm32f4xx_hal_pcd_ex.h>
 
-#define SERIAL_BAUDRATE 115200
-
-#define I2C1_PORT GPIOB
-#define I2C1_PIN_SCL GPIO_PIN_8
-#define I2C1_PIN_SDA GPIO_PIN_7
-#define I2C1_PIN_IRQ GPIO_PIN_9
 
 #define I2C2_PORT GPIOB
 #define I2C2_PIN_SCL GPIO_PIN_10
@@ -39,33 +35,13 @@ extern RTC_HandleTypeDef rtc;
 #define GPIO_PORT_SWDEBUG GPIOA
 extern GPIO_InitTypeDef GPIO_SWDEBUG;
 
-#define GPIO_PORT_LED GPIOD
-extern GPIO_InitTypeDef GPIO_LED;
-
 #define GPIO_PORT_CH334F_RST GPIOC
 extern GPIO_InitTypeDef GPIO_CH334F_RST;
 
-// Game Buttons
-////////////////////////////////////////////////////////
-#define GPIO_PORT_GAMEBTN GPIOA
-extern GPIO_InitTypeDef GPIO_GAMEBTN;
-
-// USB Composite Device
-////////////////////////////////////////////////////////
-
-#define GPIO_PORT_USB GPIOA
-extern GPIO_InitTypeDef GPIO_USB;
-
-// WS2812 LED Strip
-#define GPIO_PORT_WS2812_DOUT GPIOB
-extern GPIO_InitTypeDef GPIO_WS2812;
-extern SPI_HandleTypeDef spi2;
-extern DMA_HandleTypeDef dma_spi2;
-
 // I2C1 is used for MPR121
 ////////////////////////////////////////////////////////
-extern GPIO_InitTypeDef port_i2c1;
-extern I2C_HandleTypeDef i2c1;
+// extern GPIO_InitTypeDef port_i2c1;
+// extern I2C_HandleTypeDef i2c1;
 
 // I2C2 is used for MPR121
 ////////////////////////////////////////////////////////
@@ -87,8 +63,8 @@ extern I2C_HandleTypeDef i2c3;
 
 // SPI1 is used for WS2812
 ////////////////////////////////////////////////////////
-extern SPI_HandleTypeDef spi1;
-extern GPIO_InitTypeDef port_spi1;
+// extern SPI_HandleTypeDef spi1;
+// extern GPIO_InitTypeDef port_spi1;
 // extern DMA_HandleTypeDef dma_spi1;
 
 // Button keys

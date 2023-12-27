@@ -8,94 +8,63 @@
 #include <driver/config.h>
 
 #include <app/app.h>
-
+#include <app/led.h>
 #include <frost/api.h>
 
+/**
+ * @brief reconfigure rcc
+ */
 static void __rcc_reconfigure() {
 
-  uint32_t VOLTAGE_SCALE;
-  uint32_t FLASH_LATENCY;
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-                              | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-#ifdef STM32F411xE
-
-  RCC_OscInitStruct.PLL.PLLM = 12;
-  RCC_OscInitStruct.PLL.PLLN = 96;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 5;
-
-  FLASH_LATENCY = FLASH_LATENCY_3;
-  VOLTAGE_SCALE = PWR_REGULATOR_VOLTAGE_SCALE1;
-
-#elif STM32F401xC
-
-  RCC_OscInitStruct.PLL.PLLQ = 2;
-  RCC_OscInitStruct.PLL.PLLM = 10;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  
-  // 25Mhz OSC up to 80Mhz
-  // RCC_OscInitStruct.PLL.PLLN = 64;
-
-  // 25Mhz OSC Overclock to 120Mhz
-  RCC_OscInitStruct.PLL.PLLN = 96;
-
-  // 25Mhz OSC Overclock to 125Mhz
-  // RCC_OscInitStruct.PLL.PLLN = 100;
-
-  // 25Mhz OSC Overclock to 130Mhz (unstable)
-  // RCC_OscInitStruct.PLL.PLLN = 104;
-
-  FLASH_LATENCY = FLASH_LATENCY_2;
-  VOLTAGE_SCALE = PWR_REGULATOR_VOLTAGE_SCALE1;
-
-#elif STM32F412Rx
-
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 25;
-  RCC_OscInitStruct.PLL.PLLN = 200;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
-  RCC_OscInitStruct.PLL.PLLR = 2;
-
-  FLASH_LATENCY = FLASH_LATENCY_2;
-  VOLTAGE_SCALE = PWR_REGULATOR_VOLTAGE_SCALE1;
-  
-#else
-#error "RCC: Unsupported chip."
-#endif
-
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(VOLTAGE_SCALE);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  if(HAL_RCC_OscConfig(&(RCC_OscInitTypeDef) {
+    .OscillatorType = RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_HSE,
+    .HSEState = RCC_HSE_ON,
+    .LSEState = RCC_LSE_OFF,
+    .LSIState = RCC_LSI_ON,
+    .PLL.PLLState = RCC_PLL_ON,
+    .PLL.PLLSource = RCC_PLLSOURCE_HSE,
+    .PLL.PLLM = 25,
+    .PLL.PLLN = 200,
+    .PLL.PLLP = RCC_PLLP_DIV2,
+    .PLL.PLLQ = 2,
+    .PLL.PLLR = 2
+  }) != HAL_OK) fault_ex(err_hwinit);
+
+  if(HAL_RCC_ClockConfig(&(RCC_ClkInitTypeDef) {
+    .ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2,
+    .SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK,
+    .AHBCLKDivider = RCC_SYSCLK_DIV1,
+    .APB1CLKDivider = RCC_HCLK_DIV2,
+    .APB2CLKDivider = RCC_HCLK_DIV2
+  }, FLASH_LATENCY_2) != HAL_OK) fault_ex(err_hwinit);
+
+  if(HAL_RCCEx_PeriphCLKConfig(&(RCC_PeriphCLKInitTypeDef) {
+    .PeriphClockSelection = RCC_PERIPHCLK_RTC,
+    .RTCClockSelection = RCC_RTCCLKSOURCE_LSI
+  }) != HAL_OK) fault_ex(err_hwinit);
+
+  if(HAL_RCCEx_PeriphCLKConfig(&(RCC_PeriphCLKInitTypeDef) {
+    .PeriphClockSelection = RCC_PERIPHCLK_FMPI2C1,
+    .RTCClockSelection = RCC_FMPI2C1CLKSOURCE_SYSCLK
+  }) != HAL_OK) fault_ex(err_hwinit);
+
+  if(HAL_RCCEx_PeriphCLKConfig(&(RCC_PeriphCLKInitTypeDef) {
+    .PLLI2S.PLLI2SN = 150,
+    .PLLI2S.PLLI2SM = 26,
+    .PLLI2S.PLLI2SR = 2,
+    .PLLI2S.PLLI2SQ = 3,
+    .Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLI2SQ,
+    .PLLI2SSelection = RCC_PLLI2SCLKSOURCE_PLLSRC
+  }) != HAL_OK) fault_ex(err_hwinit);
 
   HAL_PWR_EnableBkUpAccess(); {
-    __HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_HSE_DIV2);
+    // __HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_LSI);
     __HAL_RCC_RTC_ENABLE();
   }
 
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) panic(NULL);
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY) != HAL_OK) panic(NULL);
-  
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
@@ -109,13 +78,7 @@ static void __gpio_reconfigure() {
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  // configure serial interface
-  __HAL_RCC_USART1_CLK_ENABLE(); {
-    HAL_GPIO_Init(GPIOA, &port_usart1);
-    HAL_UART_Init(&usart1);
-  }
-
-  // wait pheripherals to be ready
+  // wait clks to be ready
   HAL_Delay(100);
 }
 
@@ -135,9 +98,7 @@ void __blink_fault_reason(status_t reason) {
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   // initialize led pin only
-  HAL_GPIO_DeInit(GPIO_PORT_LED, GPIO_LED.Pin);
-  HAL_GPIO_Init(GPIO_PORT_LED, &GPIO_LED);
-  HAL_GPIO_WritePin(GPIO_PORT_LED, GPIO_LED.Pin, GPIO_PIN_SET);
+  led_init();
 
   while(true) {
 
@@ -150,9 +111,9 @@ void __blink_fault_reason(status_t reason) {
 
       // show current bit
       tick_delay(500);
-      HAL_GPIO_WritePin(GPIO_PORT_LED, GPIO_LED.Pin, GPIO_PIN_RESET);
+      led_enable(true);
       tick_delay(_bit ? 200 : 50);
-      HAL_GPIO_WritePin(GPIO_PORT_LED, GPIO_LED.Pin, GPIO_PIN_SET);
+      led_enable(false);
 
       // next bit
       _rea <<= 1;

@@ -2,7 +2,7 @@
 #include <stdarg.h>
 
 #include <sys/tick.h>
-#include <utils/log.h>
+#include <sys/debug.h>
 
 /**
  * @brief porting log print for FrostOS

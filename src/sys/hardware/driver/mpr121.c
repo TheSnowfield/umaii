@@ -102,7 +102,7 @@ static const iic_cmddef_t _cmd_init[] = {
 };
 
 void mpr121_init() {
-  iic_pattern_init(&i2c1, MPR121_ADDR, _cmd_init);
+  // iic_pattern_init(&i2c1, MPR121_ADDR, _cmd_init);
   // iic_pattern_init(&i2c2, 0x5a, _cmd_init);
   // iic_pattern_init(&i2c2, 0x5a, _cmd_init);
   // iic_pattern_init(&i2c3, 0x5a, _cmd_init);
@@ -115,7 +115,7 @@ void mpr121_set_irqcb(mpr121_irqcb_t callback) {
 uint16_t mpr121_get_touch() {
 
   uint16_t stat = 0;
-  iic_read(&i2c1, MPR121_ADDR, MPR121_REG_TOUCH_STATUS_L, (uint8_t *)&stat, 1);
+  // iic_read(&i2c1, MPR121_ADDR, MPR121_REG_TOUCH_STATUS_L, (uint8_t *)&stat, 1);
 
   return stat;
 }

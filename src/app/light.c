@@ -1,7 +1,7 @@
 #include <math.h>
-#include <utils/log.h>
 #include <driver/ws2812.h>
 #include <sys/tick.h>
+#include <sys/debug.h>
 #include <frost/api.h>
 
 #include "light.h"
@@ -88,11 +88,11 @@ void light_init(size_t count) {
 
     // clear with black(all off)
     ws2812_clear(ws2812_rgb(0, 0, 0));
-  }
 
-  // enable dma output
-  ws2812_dma_enable(true);
-  log_debug(TAG, "ws2812 inited");
+    // enable dma output
+    ws2812_dma_enable(true);
+    log_debug(TAG, "ws2812 inited");
+  }
 
   // create effect runner
   // renderring graphics as 24fps per second
@@ -100,7 +100,6 @@ void light_init(size_t count) {
 
   // suspend the task and activate it as needed
   frost_task_set_flag(_task_anim, frost_flag_suspend);
-
 }
 
 void light_show_mode(light_mode_t mode) {
@@ -116,24 +115,30 @@ void light_show_mode(light_mode_t mode) {
     switch(mode) {
       case light_mode_off:
       case light_mode_passive:
+        log_info(TAG, "passive mode");
       break;
 
       case light_mode_white_spin:
         tls_set_value_ex(_task_anim, 0, (size_t)&__anim_renderer_white_spin);
         tls_set_value_ex(_task_anim, 1, 100);
+        log_info(TAG, "set renderer: white spin");
+
       break;
 
       case light_mode_white_breath:
         tls_set_value_ex(_task_anim, 0, (size_t)&__anim_renderer_white_breath);
-        tls_set_value_ex(_task_anim, 1, 128);
+        tls_set_value_ex(_task_anim, 1, 300);
+        log_info(TAG, "set renderer: white breath");
       break;
 
       case light_mode_rainbow_spin:
         tls_set_value_ex(_task_anim, 0, (size_t)&__anim_renderer_rainbow_spin);
+        log_info(TAG, "set renderer: rainbow spin");
       break;
 
       case light_mode_full_white:
         ws2812_clear(ws2812_rgb(255, 255, 255));
+        log_info(TAG, "set mode: full white");
       break;
     }
   }
@@ -147,4 +152,3 @@ void light_show_mode(light_mode_t mode) {
   );
 
 }
-

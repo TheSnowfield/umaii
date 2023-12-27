@@ -5,6 +5,8 @@
 #include <driver/config.h>
 #include <app/input/gamebtn.h>
 
+#include <tusb.h>
+
 /******************************************************************************/
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
@@ -128,4 +130,12 @@ void EXTI9_5_IRQHandler(void) {
   */
 void EXTI15_10_IRQHandler(void) {
   __exti_gamebtn_handler(GPIO_PIN_15);
+}
+
+void OTG_FS_IRQHandler(void) {
+  tud_int_handler(0);
+}
+
+void OTG_HS_IRQHandler(void) {
+  tud_int_handler(1);
 }
