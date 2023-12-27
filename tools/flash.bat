@@ -1,7 +1,7 @@
 @echo off
 
 echo ========================================
-echo = Umaii DX Firmware Upgrade Tool v1.0  =
+echo = UmaiiDX Firmware Upgrade Tool v1.0   =
 echo = Usage flash.bat ^<firmware.fw^>        =
 echo ========================================
 echo:
