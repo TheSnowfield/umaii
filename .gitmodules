@@ -4,3 +4,6 @@
 [submodule "third-party/rucfs"]
 	path = third-party/rucfs
 	url = https://github.com/TheSnowfield/rucfs
+[submodule "third-party/tinyusb"]
+	path = third-party/tinyusb
+	url = https://github.com/hathach/tinyusb
