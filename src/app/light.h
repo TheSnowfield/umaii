@@ -33,7 +33,8 @@ void light_init(size_t count);
  * @brief set the show mode
  *
  * @param mode the mode
+ * @param speed the speed (light_flag_anim only)
  */
-void light_show_mode(light_mode_t mode);
+void light_show_mode(light_mode_t mode, uint32_t speed);
 
 #endif /* _SYS_HARDWARE_LIGHT_H */

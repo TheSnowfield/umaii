@@ -102,7 +102,7 @@ void light_init(size_t count) {
   frost_task_set_flag(_task_anim, frost_flag_suspend);
 }
 
-void light_show_mode(light_mode_t mode) {
+void light_show_mode(light_mode_t mode, uint32_t speed) {
 
   // create tls context
   if(!_task_anim->tls && !frost_ok(tls_alloc_ex(_task_anim))) {
@@ -120,19 +120,20 @@ void light_show_mode(light_mode_t mode) {
 
       case light_mode_white_spin:
         tls_set_value_ex(_task_anim, 0, (size_t)&__anim_renderer_white_spin);
-        tls_set_value_ex(_task_anim, 1, 100);
+        tls_set_value_ex(_task_anim, 1, speed);
         log_info(TAG, "set renderer: white spin");
 
       break;
 
       case light_mode_white_breath:
         tls_set_value_ex(_task_anim, 0, (size_t)&__anim_renderer_white_breath);
-        tls_set_value_ex(_task_anim, 1, 300);
+        tls_set_value_ex(_task_anim, 1, speed);
         log_info(TAG, "set renderer: white breath");
       break;
 
       case light_mode_rainbow_spin:
         tls_set_value_ex(_task_anim, 0, (size_t)&__anim_renderer_rainbow_spin);
+        tls_set_value_ex(_task_anim, 1, speed);
         log_info(TAG, "set renderer: rainbow spin");
       break;
 

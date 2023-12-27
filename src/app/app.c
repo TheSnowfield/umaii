@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
 #include <sys/tick.h>
 #include <sys/dfu.h>
 #include <sys/event.h>
@@ -44,8 +45,11 @@ void appmain() {
     led_enable(true);
   }
 
+  // turn on led strip
   light_init(3 * 8); {
-    light_show_mode(light_mode_white_breath);
+#ifdef UMAIIDX_ENABLE_BOOTANIM
+    light_show_mode(UMAIIDX_BOOTANIM_TYPE, UMAIIDX_BOOTANIM_SPEED);
+#endif
   }
 
   // initialize usb

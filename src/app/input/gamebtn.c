@@ -44,7 +44,7 @@ static status_t __get_bad_button_reason(gamebtn_stat_t state, gamebtn_stat_t exp
  * @return uint16_t status
  */
 static gamebtn_stat_t __button_status() {
-  return ((gamebtn_stat_t)GAMEBTN_PORT->IDR & GAMEBTN_IOMASK) ^ _stat_mask;
+  return ((gamebtn_stat_t)GAMEBTN_PORT->IDR & GAMEBTN_IOMASK);
 }
 
 /**
@@ -104,6 +104,7 @@ void gamebtn_init() {
     // NPN type normal open photo interrupters
     // normal: pull down, LOW
     // triged: high resistance (gpio internal pulled up), HIGH
+
     __init_button(GPIO_MODE_OUTPUT_PP, _pull = GPIO_PULLUP);
 
     log_info(TAG, "photo interrupter type: npn-normal-open");
