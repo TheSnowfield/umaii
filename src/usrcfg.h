@@ -21,7 +21,8 @@
 #endif
 
 /**
- * @brief log print baudrate
+ * @brief enable serial log print
+ * this option is CONFLICT with game button(over serial)
  */
 #define UMAIIDX_ENABLE_LOGPRINT
 #ifdef UMAIIDX_ENABLE_LOGPRINT
@@ -35,5 +36,17 @@
 #ifndef UMAIIDX_ENABLE_IO4
   #define UMAIIDX_ENABLE_IO4 0
 #endif
+
+/**
+ * @brief touch panel serial baudrate
+ * the default value is 9600. higher baud rate causes
+ * low transmission time and reduces the latency.
+ *
+ * maybe segatool supports a custom baud rate? idk
+ */
+#ifndef UMAIIDX_TOUCHPANEL_BAUDRATE
+  #define UMAIIDX_TOUCHPANEL_BAUDRATE 9600
+#endif
+
 
 #endif /* _USRCFG_H */
