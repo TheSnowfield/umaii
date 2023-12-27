@@ -1,8 +1,8 @@
 #include <sys/fault.h>
 #include <sys/debug.h>
-#include <driver/config.h>
+#include <hardware/common.h>
 #include <frost/api.h>
-#include <usrcfg.h>
+#include <config.h>
 
 #include "gamebtn.h"
 

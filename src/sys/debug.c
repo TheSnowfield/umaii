@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#include <config.h>
 #include <sys/debug.h>
-#include <usrcfg.h>
 
 static log_print_cb_t _callback = NULL;
 

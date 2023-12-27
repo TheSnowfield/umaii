@@ -1,9 +1,6 @@
 #include <sys/debug.h>
-#include "driver/ws2812.h"
-#include "driver/config.h"
-
+#include <hardware/common.h>
 #include <frost/api.h>
-#include <led.h>
 
 #include "ws2812.h"
 

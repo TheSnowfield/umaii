@@ -1,6 +1,6 @@
 #include <sys/dfu.h>
 #include <sys/fault.h>
-#include <driver/config.h>
+#include <hardware/common.h>
 
 void dfu_reset(dfu_flag_t flag) {
   fault_ex(err_dfu_mode);

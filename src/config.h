@@ -1,5 +1,5 @@
-#ifndef _USRCFG_H
-#define _USRCFG_H
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
 #define PNP_NORMAL_CLOSED 0
 #define PNP_NORMAL_OPEN   1
@@ -49,4 +49,4 @@
 #endif
 
 
-#endif /* _USRCFG_H */
+#endif /* _CONFIG_H */

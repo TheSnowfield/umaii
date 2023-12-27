@@ -1,8 +1,10 @@
 #include <stm32f4xx.h>
 #include <manager/resource.h>
-#include <driver/config.h>
+#include <hardware/common.h>
 
 #include "fault.h"
+
+#define RTC_BKUPREG_RESET RTC_BKP_DR0
 
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
@@ -13,6 +15,7 @@ void panic() {
 }
 
 #pragma GCC pop_options
+
 
 void fault() {
   fault_ex(err_ok);
@@ -28,7 +31,7 @@ void fault_ex(status_t reason) {
 }
 
 status_t get_fault_reason() {
-  return (status_t) HAL_RTCEx_BKUPRead(&rtc, RTC_BKUPREG_RESET);
+  return (status_t) HAL_RTCEx_BKUPRead(&(RTC_HandleTypeDef){.Instance = RTC}, RTC_BKUPREG_RESET);
 }
 
 void assert(uint8_t cond, status_t reason) {

@@ -1,5 +1,5 @@
 #include <sys/debug.h>
-#include <driver/config.h>
+#include <hardware/common.h>
 
 #include "led.h"
 

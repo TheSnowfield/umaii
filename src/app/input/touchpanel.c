@@ -1,6 +1,6 @@
-#include <usrcfg.h>
+#include <config.h>
 #include <sys/debug.h>
-#include <driver/config.h>
+#include <hardware/common.h>
 #include <driver/mpr121.h>
 
 #include "touchpanel.h"

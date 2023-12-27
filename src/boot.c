@@ -5,7 +5,7 @@
 #include <sys/fault.h>
 #include <sys/dfu.h>
 #include <sys/tick.h>
-#include <driver/config.h>
+#include <hardware/common.h>
 
 #include <app/app.h>
 #include <app/led.h>
@@ -70,13 +70,17 @@ static void __rcc_reconfigure() {
 
 static void __gpio_reconfigure() {
 
-  HAL_GPIO_DeInit(GPIOA, GPIO_PIN_All ^ GPIO_SWDEBUG.Pin);
+  // deinit all pin without SWDIO(13) and SWCLK(14)
+  HAL_GPIO_DeInit(GPIOA, GPIO_PIN_All ^ (GPIO_PIN_13 | GPIO_PIN_14));
   HAL_GPIO_DeInit(GPIOB, GPIO_PIN_All);
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
+  HAL_GPIO_DeInit(GPIOC, GPIO_PIN_All);
+  HAL_GPIO_DeInit(GPIOD, GPIO_PIN_All);
+  HAL_GPIO_DeInit(GPIOH, GPIO_PIN_All);
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
 
   // wait clks to be ready
   HAL_Delay(100);
@@ -90,12 +94,12 @@ static void __gpio_reconfigure() {
 void __blink_fault_reason(status_t reason) {
 
   // HAL_Init();
-  __rcc_reconfigure();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
+  // __rcc_reconfigure();
+  // __HAL_RCC_GPIOC_CLK_ENABLE();
+  // __HAL_RCC_GPIOH_CLK_ENABLE();
+  // __HAL_RCC_GPIOA_CLK_ENABLE();
+  // __HAL_RCC_GPIOB_CLK_ENABLE();
+  // __HAL_RCC_GPIOD_CLK_ENABLE();
 
   // initialize led pin only
   led_init();

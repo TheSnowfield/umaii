@@ -2,7 +2,7 @@
 #include <stm32f4xx_it.h>
 
 #include <sys/fault.h>
-#include <driver/config.h>
+#include <hardware/common.h>
 #include <app/input/gamebtn.h>
 
 #include <tusb.h>
