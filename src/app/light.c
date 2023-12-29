@@ -1,8 +1,9 @@
 #include <math.h>
-#include <driver/ws2812.h>
 #include <sys/tick.h>
 #include <sys/debug.h>
 #include <frost/api.h>
+#include <hardware/ws2812.h>
+#include <board/led15093.h>
 
 #include "light.h"
 
@@ -12,7 +13,6 @@ typedef void(* effect_runner_t)(uint64_t time);
 
 /**
  * @brief [anim renderer] rainbow spinning effect
- *
  */
 static void __anim_renderer_rainbow_spin(uint64_t time) {
 
@@ -21,7 +21,6 @@ static void __anim_renderer_rainbow_spin(uint64_t time) {
 
 /**
  * @brief [anim renderer] white spinning effect
- *
  */
 static void __anim_renderer_white_spin(uint64_t time) {
 
@@ -46,7 +45,6 @@ static void __anim_renderer_white_spin(uint64_t time) {
 
 /**
  * @brief [anim renderer] white breath effect
- *
  */
 static void __anim_renderer_white_breath(uint64_t time) {
   
@@ -81,6 +79,26 @@ static void __callback_task_anim() {
   _renderer(tick_get_time());
 }
 
+/**
+ * @brief board 15093 light control board
+ */
+static void __callback_passive_handler(led15093_event_t event) {
+
+  switch(event) {
+
+    // host connected. turn into passive mode
+    case led15093_event_connected:
+      light_show_mode(light_mode_passive, 0);
+      log_info(TAG, "host connection established, enter passive mode.");
+      break;
+
+      // todo: update leds
+      case led15093_event_update:
+      break;
+  }
+
+}
+
 void light_init(size_t count) {
 
   // init and clear ws2812 led strip
@@ -100,6 +118,13 @@ void light_init(size_t count) {
 
   // suspend the task and activate it as needed
   frost_task_set_flag(_task_anim, frost_flag_suspend);
+
+  // passive mode
+  // init led control board
+  led15093_init(); {
+    led15093_set_callback(&__callback_passive_handler);
+  }
+
 }
 
 void light_show_mode(light_mode_t mode, uint32_t speed) {
@@ -114,6 +139,9 @@ void light_show_mode(light_mode_t mode, uint32_t speed) {
   ws2812_clear(ws2812_rgb(0, 0, 0)); {
     switch(mode) {
       case light_mode_off:
+        log_info(TAG, "off");
+      break;
+
       case light_mode_passive:
         log_info(TAG, "passive mode");
       break;

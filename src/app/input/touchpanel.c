@@ -1,7 +1,7 @@
 #include <config.h>
 #include <sys/debug.h>
 #include <hardware/common.h>
-#include <driver/mpr121.h>
+#include <hardware/mpr121.h>
 
 #include "touchpanel.h"
 

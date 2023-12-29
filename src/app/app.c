@@ -13,8 +13,6 @@
 
 #include <input/gamebtn.h>
 #include <input/touchpanel.h>
-#include <hardware/usb.h>
-#include <hardware/usbhub.h>
 
 #include <app/led.h>
 #include <app/light.h>
@@ -25,13 +23,47 @@
 #include <tusb_config.h>
 #include <tusb.h>
 
+// void cdc_task(void) {
+//   // connected() check for DTR bit
+//   // Most but not all terminal client set this when making connection
+//   // if ( tud_cdc_connected() )
+//   {
+//     // connected and there are data available
+//     if (tud_cdc_available()) {
+//       // read data
+//       char buf[64];
+//       uint32_t count = tud_cdc_read(buf, sizeof(buf));
+//       (void) count;
+
+//       // Echo back
+//       // Note: Skip echo by commenting out write() and write_flush()
+//       // for throughput test e.g
+//       //    $ dd if=/dev/zero of=/dev/ttyACM0 count=10000
+//       tud_cdc_write(buf, count);
+//       tud_cdc_write_flush();
+//     }
+//   }
+// }
+
 void appmain() {
 
-  // init logprint uart
+  // init logprint
   logprint_init(); {
-    logprint_print("UmaiiDX\r\n");
+    logprint_print("Welcome to UmaiiDX!\r\n");
     logprint_print(BUILD_VERSION);
     logprint_print("\r\n===================================\r\n");
+  }
+
+  // turn on led strip
+  light_init(3 * 8); {
+#ifdef UMAIIDX_LIGHT_BOOTANIM
+    light_show_mode(BOOTANIM_TYPE, BOOTANIM_SPEED);
+#endif
+  }
+
+  // turn on status led
+  led_init(); {
+    led_enable(true);
   }
 
   // initialize resources
@@ -40,31 +72,13 @@ void appmain() {
   //   return;
   // }
 
-  // turn on led
-  led_init(); {
-    led_enable(true);
-  }
-
-  // turn on led strip
-  light_init(3 * 8); {
-#ifdef UMAIIDX_ENABLE_BOOTANIM
-    light_show_mode(UMAIIDX_BOOTANIM_TYPE, UMAIIDX_BOOTANIM_SPEED);
-#endif
-  }
-
   // initialize usb
   // usb_init();
   // tusb_init(); {
-  //   // frost_task_interval(0, &tud_task, NULL);
+  //   frost_task_interval(0, &tud_task, NULL);
+  //   frost_task_interval(0, &cdc_task, NULL);
   // }
 
-  // setup usbhub oem information
-  // usbhub_init(); {
-  //   usbhub_eepemu_setup();
-  //   usbhub_enable(true);
-  //   usbhub_eepemu_release();
-  // }
-  
   // initialize touch panel
   touchpanel_init(); {
     // touchpanel_enable_irq(true);

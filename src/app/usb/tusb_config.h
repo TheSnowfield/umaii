@@ -1,6 +1,8 @@
 #ifndef _APP_USB_TUSB_CONFIG_H
 #define _APP_USB_TUSB_CONFIG_H
 
+#define CFG_TUSB_DEBUG 3
+
 //--------------------------------------------------------------------+
 // Board Specific Configuration
 //--------------------------------------------------------------------+
@@ -9,8 +11,6 @@
 #ifndef BOARD_TUD_RHPORT
 #define BOARD_TUD_RHPORT      0
 #endif
-
-#define TUD_OPT_RHPORT 0
 
 // RHPort max operational speed can defined by board.mk
 #ifndef BOARD_TUD_MAX_SPEED
