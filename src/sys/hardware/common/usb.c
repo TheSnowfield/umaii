@@ -1,7 +1,6 @@
 #include <hardware/common.h>
 #include "usb.h"
 
-
 static PCD_HandleTypeDef pcd = {
   .Instance = USB_OTG_FS,
   .Init.dev_endpoints = 8,
@@ -30,9 +29,15 @@ void usb_init() {
     .Alternate = GPIO_AF10_OTG_FS
   });
 
-  // enable bus clk
+  // // enable bus clk
   __HAL_RCC_USB_OTG_FS_CLK_ENABLE(); {
     HAL_PCD_Init(&pcd);
+
+    // USB_OTG_FS->GCCFG &= ~USB_OTG_GCCFG_VBDEN;
+    // USB_OTG_FS->GOTGCTL |= USB_OTG_GOTGCTL_BVALOEN;
+    // USB_OTG_FS->GOTGCTL |= USB_OTG_GOTGCTL_BVALOVAL;
+    // USB_OTG_FS->GUSBCFG &= ~USB_OTG_GUSBCFG_FHMOD;
+    // USB_OTG_FS->GUSBCFG |= USB_OTG_GUSBCFG_FDMOD;
 
     HAL_NVIC_SetPriority(OTG_FS_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(OTG_FS_IRQn);

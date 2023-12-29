@@ -140,6 +140,7 @@ typedef void (*mpr121_irqcb_t)(uint16_t status);
 
 /**
  * @brief mpr121 init
+ *
  */
 void mpr121_init();
 

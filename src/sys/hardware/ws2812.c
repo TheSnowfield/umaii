@@ -127,7 +127,7 @@ void ws2812_dma_enable(bool en) {
 
   if(en) {
 
-    // enable dma
+    // enable dma clk
     __HAL_RCC_DMA1_CLK_ENABLE(); {
       HAL_DMA_Init(&dma_spi2);
     }
