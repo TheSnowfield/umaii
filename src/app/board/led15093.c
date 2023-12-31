@@ -1,9 +1,14 @@
+#include <stddef.h>
 #include <config.h>
 #include <sys/debug.h>
 #include <hardware/common.h>
+#include <app/led.h>
+#include <frost/api.h>
+#include <frost/tricks.h>
 
 #include "led15093.h"
 #include "led15093_cmd.h"
+#include "led15093_frame.h"
 
 static UART_HandleTypeDef _uart1 = {
   .Instance = USART1,
@@ -27,18 +32,29 @@ static DMA_HandleTypeDef _dma_uart1 = {
   .Init.Mode = DMA_CIRCULAR,
   .Init.Priority = DMA_PRIORITY_LOW,
   .Init.FIFOMode = DMA_FIFOMODE_DISABLE,
-  // .Init.FIFOMode = DMA_FIFOMODE_ENABLE,
-  // .Init.FIFOThreshold = DMA_FIFO_THRESHOLD_1QUARTERFULL,
-  // .Init.MemBurst = DMA_MBURST_SINGLE,
-  // .Init.PeriphBurst = DMA_PBURST_SINGLE,
 };
 
-static led15093_passive_cb_t _callback = NULL;
-static led15093_frame_t _frame = {0};
+typedef enum {
+  recv_state_header,
+  recv_state_body,
+} recv_state_t;
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  log_debug(TAG, "dma received");
-}
+typedef struct {
+  recv_state_t state;
+
+  led15093_frame_t* current;
+
+  struct {
+    uint8_t index;
+    led15093_frame_t swap[2];
+  } framebuf;
+
+} recv_context_t;
+
+static led15093_passive_cb_t _callback = NULL;
+static recv_context_t _recv_ctx = {0};
+
+#define SWAPSIZE ((sizeof(_recv_ctx.framebuf.swap) / sizeof(led15093_frame_t)))
 
 /**
  * @brief exti nvic handler. see stm32f4xx_it.c
@@ -47,11 +63,131 @@ void __exti_usart1_handler() {
   HAL_UART_IRQHandler(&_uart1);
 }
 
+#define __packet_total_length(p) (4 + (p)->length + 1)
+
 /**
- * @brief exti nvic handler. see stm32f4xx_it.c
+ * @brief swap the frame buffer
+ * calling this function when start to recving a new packet
  */
-void __exti_dma2_s2_handler() {
-  HAL_DMA_IRQHandler(&_dma_uart1);
+static led15093_frame_t* __packet_swap_frame() {
+  
+  // ring buffer
+  if(++_recv_ctx.framebuf.index >= SWAPSIZE) {
+    _recv_ctx.framebuf.index = 0;
+  }
+
+  // apply the new frame
+  led15093_frame_t* _old = _recv_ctx.current;
+  _recv_ctx.current = &_recv_ctx.framebuf.swap[_recv_ctx.framebuf.index];
+
+  return _old;
+}
+
+/**
+ * @brief receive packet part in interrupt mode
+ *
+ * @param state the new state
+ */
+static void __packet_recv_it(recv_state_t state) {
+
+  // packet example
+  // E0 11 01 08 | 32 00 20 00 00 00 00 00 | 6C
+  //          ^                              ^
+  //          data length                    checksum
+  switch(_recv_ctx.state = state) {
+
+    // header need 4 bytes
+    case recv_state_header:
+      HAL_UART_Receive_IT(&_uart1, (uint8_t *)_recv_ctx.current, 4);
+    break;
+
+    // receive body and checksum
+    case recv_state_body:
+      HAL_UART_Receive_IT(&_uart1, _recv_ctx.current->payload, _recv_ctx.current->length + 1);
+    break;
+
+  }
+}
+
+/**
+ * @brief calculate checksum
+ *
+ * @param frame the packet frame
+ * @return uint8_t checksum
+ */
+static uint8_t __packet_calc_checksum(led15093_frame_t* frame) {
+
+  uint32_t _sum = 0;
+  uint8_t* _srtcalc = (uint8_t *)frame + 1;
+  uint8_t* _endcalc = _srtcalc + 3 + frame->length;
+
+  // calclate checksum
+  for(uint8_t* i = _srtcalc; i < _endcalc; ++i) {
+    _sum += *i;
+  }
+
+  // teardown low 1 byte
+  return _sum & 0xff;
+}
+
+/**
+ * @brief packet handler
+ * do not call this function in the interrupt
+ *
+ * @param frame the packet frame
+ */
+static void __packet_handler(led15093_frame_t* frame) {
+
+  // no need to process the packet if no callback is set
+  if(_callback == NULL) return;
+
+  switch(frame->payload[0]) {
+
+    // reset the board
+    case led15093_cmd_reset:
+      _callback(led15093_event_connected);
+    break;
+
+
+
+  }
+
+}
+
+/**
+ * @brief weak function. uart rx complete callback
+ *
+ * @param huart the uart handle
+ */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+
+  // start to read the body and checksum
+  if(_recv_ctx.state == recv_state_header) {
+    __packet_recv_it(recv_state_body);
+    return;
+  }
+
+  // okay. we have received one packet
+  else if (_recv_ctx.state == recv_state_body) {
+
+    // get checksum
+    uint8_t _chksum = 0; {
+      uint8_t* _ptr = (uint8_t *)_recv_ctx.current;
+      _ptr += 4 + _recv_ctx.current->length;
+      _chksum = *_ptr;
+    }
+
+    // validate the checksum
+    // if correct, swap the frame and start parse
+    if(__packet_calc_checksum(_recv_ctx.current) == _chksum) {
+      run_async(__packet_handler, 1, __packet_swap_frame());
+    }
+
+    // restart the recv
+    __packet_recv_it(recv_state_header);
+
+    return;
+  }
 }
 
 void led15093_init() {
@@ -73,20 +209,14 @@ void led15093_init() {
     HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
 
-    // init dma
-    __HAL_LINKDMA(&_uart1, hdmarx, _dma_uart1);
-    __HAL_RCC_DMA2_CLK_ENABLE(); {
-      HAL_DMA_Init(&_dma_uart1);
-      HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-    }
-
   }
 
-  // start receive
-  HAL_StatusTypeDef _s = HAL_UART_Receive_DMA(&_uart1, (uint8_t *)&_frame, sizeof(_frame));
+  log_info(TAG, "led15093 board initialized");
 
-  log_info(TAG, "led15093 board initialized %d", _s);
+  // start receive
+  __packet_swap_frame();
+  __packet_recv_it(recv_state_header);
+  log_info(TAG, "listening on the serial data...");
 
 }
 

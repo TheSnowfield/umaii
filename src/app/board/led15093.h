@@ -35,9 +35,4 @@ void led15093_set_callback(led15093_passive_cb_t cb);
  */
 void __exti_usart1_handler();
 
-/**
- * @brief exti nvic handler. see stm32f4xx_it.c
- */
-void __exti_dma2_s2_handler();
-
 #endif /* _APP_BOARD_LED15093_H */

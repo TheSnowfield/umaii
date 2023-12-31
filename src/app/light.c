@@ -58,6 +58,13 @@ static void __anim_renderer_white_breath(uint64_t time) {
   ws2812_clear(ws2812_rgb(_bright, _bright, _bright));
 }
 
+/**
+ * @brief [anim renderer] passive mode
+ */
+static void __anim_renderer_passive(uint64_t time) {
+  
+}
+
 static void __callback_task_anim() {
 
   // run checks
@@ -143,7 +150,8 @@ void light_show_mode(light_mode_t mode, uint32_t speed) {
       break;
 
       case light_mode_passive:
-        log_info(TAG, "passive mode");
+        tls_set_value_ex(_task_anim, 0, (size_t)&__anim_renderer_passive);
+        log_info(TAG, "set renderer: passive");
       break;
 
       case light_mode_white_spin:

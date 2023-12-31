@@ -17,7 +17,7 @@ typedef enum {
   light_mode_rainbow_spin  = MODE(2, light_flag_anim),
   light_mode_white_spin    = MODE(3, light_flag_anim),
   light_mode_white_breath  = MODE(4, light_flag_anim),
-  light_mode_passive       = MODE(5, light_flag_static)
+  light_mode_passive       = MODE(5, light_flag_anim)
 } light_mode_t;
 
 #undef MODE

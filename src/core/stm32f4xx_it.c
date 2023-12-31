@@ -4,6 +4,7 @@
 #include <sys/fault.h>
 #include <hardware/common.h>
 #include <app/input/gamebtn.h>
+#include <app/board/led15093.h>
 
 #include <tusb.h>
 
@@ -114,6 +115,13 @@ void EXTI3_IRQHandler(void) {
   */
 void EXTI4_IRQHandler(void) {
   __exti_gamebtn_handler(GPIO_PIN_4);
+}
+
+/**
+  * @brief This function handles USART1 global interrupt.
+  */
+void USART1_IRQHandler(void) {
+  __exti_usart1_handler();
 }
 
 /**

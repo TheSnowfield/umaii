@@ -3,6 +3,7 @@
 
 /**
  * best thanks to segatool for offering this reference!
+ * :3
 */
 
 /* Frame structure:
@@ -33,8 +34,7 @@ typedef struct {
   uint8_t dest;
   uint8_t source;
   uint8_t length;
-  uint8_t payload[255];
-  uint8_t checksum;
+  uint8_t payload[255 + 1];
 } led15093_frame_t;
 
 #endif /* _APP_BOARD_LED15093_FRAME_H */
