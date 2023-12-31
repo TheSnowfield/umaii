@@ -1,20 +1,44 @@
+/**
+ * UmaiiDX Control Board (AGPL)
+ * UmaiiDX (c) 2024
+ *
+ * This file is used to configure the umaiidx control board firmware,
+ * contains several options for fine-tuning the board features.
+ * Feel free to adjust these options to reach your best game experience!
+ *
+ * After you edit this file every time, re-compile, and upload the board is needed.
+ * Happy enjoy!
+ *
+ * The default serial port number assignment is:
+ * Player 1: TouchPanel(COM3), LED(COM21/COM25/COM29/COM33)
+ * Player 2: TouchPanel(COM4), LED(COM23/COM27/COM31/COM35)
+ * CardReader: COM1
+ * COM20? COM24? COM28? COM32?
+ */
+
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#define PNP_NORMAL_CLOSED 0
-#define PNP_NORMAL_OPEN   1
-#define NPN_NORMAL_CLOSED 2
-#define NPN_NORMAL_OPEN   3
-
 /**
  * @brief enable serial log print
- * this option is CONFLICT with game button(over serial)
+ * this option is CONFLICT with game button `UMAIIDX_LIGHT_MUX_GAMEBTN`
+ *
+ * while `UMAIIDX_ENABLE_LOGPRINT` is enabled, debug logs
+ * will print to serial, which is using the muxed TX serial port of the light control board.
  */
 #define UMAIIDX_ENABLE_LOGPRINT
 #ifdef UMAIIDX_ENABLE_LOGPRINT
   #define UMAIIDX_LOG_FMTSIZE 256
-  #define UMAIIDX_LOGPRINT_BAUDRATE 921600
 #endif
+
+/**
+ * @brief predefined photo interrupter types.
+ * don't change them
+ */
+#define PNP_NORMAL_CLOSED 0
+#define PNP_NORMAL_OPEN   1
+#define NPN_NORMAL_CLOSED 2
+#define NPN_NORMAL_OPEN   3
 
 /**
  * @brief photo interrupter type
@@ -24,22 +48,51 @@
 #endif
 
 /**
- * @brief enable io4 emulation
- * all button input operations will be transmitted via usb hid.
- */
-#ifndef UMAIIDX_ENABLE_IO4
-  #define UMAIIDX_ENABLE_IO4
-#endif
-
-/**
  * @brief touch panel serial baud rate
- * the default value is 9600. higher baud rate causes
- * low transmission time and reduces the latency.
+ * the default value is 9600.
+ * a higher baud rate causes low transmission time and reduces the input latency,
+ * but increase data error rate (referenced from wch334p datasheet).
  *
- * maybe segatool supports a custom baud rate? idk
+ * maybe segatool support a custom baud rate?
+ * I'm not sure, but you still can work around it by patching the game.
  */
 #ifndef UMAIIDX_TOUCHPANEL_BAUDRATE
   #define UMAIIDX_TOUCHPANEL_BAUDRATE 9600
+#endif
+
+/**
+ * @brief enable io4 emulation
+ * enabled this function, all button input
+ * operations will be transmitted over usb hid (io4 emulation over jvs protocol).
+ *
+ * after commenting UMAIIDX_GAMEBTN_HID, the input will be transmitted over serial.
+ * serial mode must be supported by segatool custom io (mai2.dll).
+ */
+#define UMAIIDX_GAMEBTN_HID
+#ifdef UMAIIDX_GAMEBTN_HID
+  #define BOARD_15257_VID 0x0ca3
+  #define BOARD_15257_PID 0x0021
+  #define BOARD_15257_MANUFACTURER "Sega Corp."
+  #define BOARD_15257_DESCRIPTION "I/O CONTROL BD"
+#elif defined UMAIIDX_ENABLE_LOGPRINT
+  #error Please disable the log feature `UMAIIDX_ENABLE_LOGPRINT` \
+  or enable gamtbtn io4 emulation `UMAIIDX_GAMEBTN_HID`. \
+  They're using the same uart output port, conflict.
+#else
+
+/**
+ * @brief mux serial TX port of light control as gamebtn output
+ * game will report the light control board is in the BAD state, then ignore the error.
+ */
+  #define UMAIIDX_LIGHT_MUX_GAMEBTN
+#endif
+
+/**
+ * @brief light control serial baud rate
+ */
+// #define UMAIIDX_LIGHT_CONTROL
+#ifndef UMAIIDX_LIGHT_BAUDRATE
+  #define UMAIIDX_LIGHT_BAUDRATE 115200
 #endif
 
 /**
@@ -57,10 +110,10 @@
  * - light_mode_white_breath: white breathing effect
  * - light_mode_passive: passive mode. receive the control msgs from game program
  */
-#define UMAIIDX_ENABLE_BOOTANIM
-#ifdef UMAIIDX_ENABLE_BOOTANIM
-  #define UMAIIDX_BOOTANIM_TYPE light_mode_white_spin
-  #define UMAIIDX_BOOTANIM_SPEED 50
+#define UMAIIDX_LIGHT_BOOTANIM
+#ifdef UMAIIDX_LIGHT_BOOTANIM
+  #define BOOTANIM_TYPE light_mode_white_breath
+  #define BOOTANIM_SPEED 300
 #endif
 
 #endif /* _CONFIG_H */
