@@ -26,6 +26,11 @@ static void __rcc_reconfigure() {
     .LSIState = RCC_LSI_ON,
     .PLL.PLLState = RCC_PLL_ON,
     .PLL.PLLSource = RCC_PLLSOURCE_HSE,
+
+    // PLLM:
+    // - 25 for 100MHz
+    // - 20 for 125MHz
+    // - 15 for 166MHz (unstable)
     .PLL.PLLM = 25,
     .PLL.PLLN = 200,
     .PLL.PLLP = RCC_PLLP_DIV2,

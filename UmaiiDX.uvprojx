@@ -434,49 +434,29 @@
           <GroupName>SYS/HARDWARE</GroupName>
           <Files>
             <File>
-              <FileName>button.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\button.c</FilePath>
-            </File>
-            <File>
-              <FileName>usbhub.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\usbhub.c</FilePath>
-            </File>
-            <File>
-              <FileName>usb.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\usb.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>SYS/HARDWARE/DRIVER</GroupName>
-          <Files>
-            <File>
               <FileName>ch334f.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\driver\ch334f.c</FilePath>
-            </File>
-            <File>
-              <FileName>config.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\driver\config.c</FilePath>
+              <FilePath>.\src\sys\hardware\ch334f.c</FilePath>
             </File>
             <File>
               <FileName>mpr121.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\driver\mpr121.c</FilePath>
+              <FilePath>.\src\sys\hardware\mpr121.c</FilePath>
             </File>
             <File>
               <FileName>ws2812.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\driver\ws2812.c</FilePath>
+              <FilePath>.\src\sys\hardware\ws2812.c</FilePath>
             </File>
             <File>
               <FileName>iic.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\sys\hardware\driver\common\iic.c</FilePath>
+              <FilePath>.\src\sys\hardware\common\iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\sys\hardware\common\uart.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -541,7 +521,12 @@
             <File>
               <FileName>io4.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\app\usb\device\io4.c</FilePath>
+              <FilePath>.\src\app\board\io4.c</FilePath>
+            </File>
+            <File>
+              <FileName>led15093.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\app\board\led15093.c</FilePath>
             </File>
           </Files>
         </Group>

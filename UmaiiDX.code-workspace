@@ -29,7 +29,8 @@
             "unordered_map": "c",
             "utility": "c",
             "vector": "c",
-            "cstdlib": "c"
+            "cstdlib": "c",
+            "algorithm": "c"
         },
         "[yaml]": {
             "editor.insertSpaces": true,

@@ -37,20 +37,20 @@ static UART_HandleTypeDef uart3 = {
 
 void touchpanel_init() {
 
-  __HAL_RCC_USART3_CLK_ENABLE(); {
+  // __HAL_RCC_USART3_CLK_ENABLE(); {
 
-    // init gpio pinmux
-    HAL_GPIO_Init(GPIOC, &(GPIO_InitTypeDef) {
-      .Pin = GPIO_PIN_10 | GPIO_PIN_11,
-      .Mode = GPIO_MODE_AF_PP,
-      .Pull = GPIO_NOPULL,
-      .Speed = GPIO_SPEED_FREQ_VERY_HIGH,
-      .Alternate = GPIO_AF7_USART3
-    });
+  //   // init gpio pinmux
+  //   HAL_GPIO_Init(GPIOC, &(GPIO_InitTypeDef) {
+  //     .Pin = GPIO_PIN_10 | GPIO_PIN_11,
+  //     .Mode = GPIO_MODE_AF_PP,
+  //     .Pull = GPIO_NOPULL,
+  //     .Speed = GPIO_SPEED_FREQ_VERY_HIGH,
+  //     .Alternate = GPIO_AF7_USART3
+  //   });
 
-    // init usart
-    HAL_UART_Init(&uart3);
-  }
+  //   // init usart
+  //   HAL_UART_Init(&uart3);
+  // }
 
   // init i2c1 and its irq pin
   __HAL_RCC_I2C1_CLK_ENABLE(); {
