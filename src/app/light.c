@@ -62,7 +62,7 @@ static void __anim_renderer_white_breath(uint64_t time) {
  * @brief [anim renderer] passive mode
  */
 static void __anim_renderer_passive(uint64_t time) {
-  
+
 }
 
 static void __callback_task_anim() {
@@ -119,7 +119,7 @@ void light_init(size_t count) {
     log_debug(TAG, "ws2812 inited");
   }
 
-  // create effect runner
+  // create effect renderer
   // renderring graphics as 24fps per second
   frost_task_interval(1000 / 24, &__callback_task_anim, &_task_anim);
 
@@ -138,7 +138,7 @@ void light_show_mode(light_mode_t mode, uint32_t speed) {
 
   // create tls context
   if(!_task_anim->tls && !frost_ok(tls_alloc_ex(_task_anim))) {
-    log_warning(TAG, "cannot create task tls.");
+    log_warning(TAG, "can not create task tls.");
     return;
   }
 

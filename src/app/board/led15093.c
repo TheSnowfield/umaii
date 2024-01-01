@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdbool.h>
 #include <config.h>
 #include <sys/debug.h>
 #include <hardware/common.h>
@@ -40,8 +41,8 @@ typedef enum {
 } recv_state_t;
 
 typedef struct {
+  bool init;
   recv_state_t state;
-
   led15093_frame_t* current;
 
   struct {
@@ -145,10 +146,15 @@ static void __packet_handler(led15093_frame_t* frame) {
 
     // reset the board
     case led15093_cmd_reset:
-      _callback(led15093_event_connected);
+      if(!_recv_ctx.init) {
+        _callback(led15093_event_connected);
+        _recv_ctx.init = true;
+      }
     break;
 
-
+    // turn board into slient mode
+    case led15093_cmd_set_disable_response:
+    break;
 
   }
 

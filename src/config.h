@@ -2,12 +2,19 @@
  * UmaiiDX Control Board (AGPL)
  * UmaiiDX (c) 2024
  *
- * This file is used to configure the umaiidx control board firmware,
+ * This file is used to configure the UmaiiDX control board firmware,
  * contains several options for fine-tuning the board features.
  * Feel free to adjust these options to reach your best game experience!
  *
- * After you edit this file every time, re-compile, and upload the board is needed.
- * Happy enjoy!
+ * After you edit this file every time, re-compile the project,
+ * and upload to the board is needed.
+ *
+ * Happy enjoy! （＾∀＾●）ﾉｼ
+ *
+ * Inputs / Outputs:
+ * TouchPanel [COM]
+ * GameButton, 1P, Coin, Service, Test [HID(IO4) / KBD(SEGATOOL) / COM(SEGATOOL CUSTOM IO)]
+ * Light [COM (TX(slave) is optional)]
  *
  * The default serial port number assignment is:
  * Player 1: TouchPanel(COM3), LED(COM21/COM25/COM29/COM33)
@@ -24,9 +31,9 @@
  * this option is CONFLICT with game button `UMAIIDX_LIGHT_MUX_GAMEBTN`
  *
  * while `UMAIIDX_ENABLE_LOGPRINT` is enabled, debug logs
- * will print to serial, which is using the muxed TX serial port of the light control board.
+ * will print to serial, which is using the muxed TX serial port of the light control.
  */
-#define UMAIIDX_ENABLE_LOGPRINT
+// #define UMAIIDX_ENABLE_LOGPRINT
 #ifdef UMAIIDX_ENABLE_LOGPRINT
   #define UMAIIDX_LOG_FMTSIZE 256
 #endif
