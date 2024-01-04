@@ -28,13 +28,54 @@
    0xD0 is an escape byte. Un-escape the subsequent byte by adding 1. */
 
 #include <stdint.h>
+#include <compiler/packed.h>
 
 typedef struct {
   uint8_t sync;
   uint8_t dest;
   uint8_t source;
   uint8_t length;
-  uint8_t payload[255 + 1];
+} packed led15093_header_t;
+
+typedef struct {
+  uint8_t index;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} packed led15093_ledclr_t;
+
+typedef struct {
+  uint8_t index;
+  uint8_t length;
+  uint8_t skip;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  uint8_t factor;
+} packed led15093_batchctl_t;
+
+typedef union {
+  
+  struct {
+    uint8_t data[sizeof(led15093_header_t) + 255 + 1];
+  } buffer;
+
+  struct {
+    led15093_header_t header;
+    uint8_t cmd;
+
+    union {
+
+      struct {
+        uint8_t data[254 + 1];
+      } common;
+
+      led15093_ledclr_t pkt_ledclr;
+      led15093_batchctl_t pkt_batchctl;
+    } payload;
+
+  };
+
 } led15093_frame_t;
 
 #endif /* _APP_BOARD_LED15093_FRAME_H */

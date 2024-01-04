@@ -35,33 +35,43 @@ static DMA_HandleTypeDef _dma_uart1 = {
   .Init.FIFOMode = DMA_FIFOMODE_DISABLE,
 };
 
-typedef enum {
-  recv_state_header,
-  recv_state_body,
-} recv_state_t;
+#define DMASIZE 512
+#define SWAPSIZE 64
 
 typedef struct {
   bool init;
-  recv_state_t state;
-  led15093_frame_t* current;
+
+  struct {
+    size_t len;
+    size_t checksum;
+    uint8_t escape;
+    led15093_frame_t* ref;
+  } state;
 
   struct {
     uint8_t index;
-    led15093_frame_t swap[2];
-  } framebuf;
+    led15093_frame_t pool[SWAPSIZE];
+  } swap;
+
+  struct {
+    size_t recv;
+    uint8_t buffer[DMASIZE];
+  } dma;
 
 } recv_context_t;
 
 static led15093_passive_cb_t _callback = NULL;
 static recv_context_t _recv_ctx = {0};
 
-#define SWAPSIZE ((sizeof(_recv_ctx.framebuf.swap) / sizeof(led15093_frame_t)))
-
 /**
  * @brief exti nvic handler. see stm32f4xx_it.c
  */
 void __exti_usart1_handler() {
   HAL_UART_IRQHandler(&_uart1);
+}
+
+void DMA2_Stream2_IRQHandler() {
+  HAL_DMA_IRQHandler(&_dma_uart1);
 }
 
 #define __packet_total_length(p) (4 + (p)->length + 1)
@@ -73,63 +83,45 @@ void __exti_usart1_handler() {
 static led15093_frame_t* __packet_swap_frame() {
   
   // ring buffer
-  if(++_recv_ctx.framebuf.index >= SWAPSIZE) {
-    _recv_ctx.framebuf.index = 0;
+  if(++_recv_ctx.swap.index >= SWAPSIZE) {
+    _recv_ctx.swap.index = 0;
   }
 
   // apply the new frame
-  led15093_frame_t* _old = _recv_ctx.current;
-  _recv_ctx.current = &_recv_ctx.framebuf.swap[_recv_ctx.framebuf.index];
+  led15093_frame_t* _old = _recv_ctx.state.ref;
+  _recv_ctx.state.ref = &_recv_ctx.swap.pool[_recv_ctx.swap.index];
 
   return _old;
 }
 
 /**
  * @brief receive packet part in interrupt mode
- *
- * @param state the new state
  */
-static void __packet_recv_it(recv_state_t state) {
-
-  // packet example
-  // E0 11 01 08 | 32 00 20 00 00 00 00 00 | 6C
-  //          ^                              ^
-  //          data length                    checksum
-  switch(_recv_ctx.state = state) {
-
-    // header need 4 bytes
-    case recv_state_header:
-      HAL_UART_Receive_IT(&_uart1, (uint8_t *)_recv_ctx.current, 4);
-    break;
-
-    // receive body and checksum
-    case recv_state_body:
-      HAL_UART_Receive_IT(&_uart1, _recv_ctx.current->payload, _recv_ctx.current->length + 1);
-    break;
-
-  }
+static void __packet_recv_dma() {
+  HAL_UARTEx_ReceiveToIdle_DMA(&_uart1, _recv_ctx.dma.buffer, DMASIZE);
 }
 
-/**
- * @brief calculate checksum
- *
- * @param frame the packet frame
- * @return uint8_t checksum
- */
-static uint8_t __packet_calc_checksum(led15093_frame_t* frame) {
+// /**
+//  * @brief calculate checksum
+//  *
+//  * @param frame the packet frame
+//  * @return uint8_t checksum
+//  */
+// static uint8_t __packet_calc_checksum(led15093_frame_t* frame) {
 
-  uint32_t _sum = 0;
-  uint8_t* _srtcalc = (uint8_t *)frame + 1;
-  uint8_t* _endcalc = _srtcalc + 3 + frame->length;
+//   uint32_t _sum = 0;
+//   uint8_t* _srtcalc = (uint8_t *)frame + 1;
+//   uint8_t* _endcalc = _srtcalc + 3 + frame->length;
 
-  // calclate checksum
-  for(uint8_t* i = _srtcalc; i < _endcalc; ++i) {
-    _sum += *i;
-  }
+//   // calclate checksum
+//   for(uint8_t* i = _srtcalc; i < _endcalc; ++i) {
+//     _sum += *i;
+//   }
 
-  // teardown low 1 byte
-  return _sum & 0xff;
-}
+//   // teardown low 1 byte
+//   return _sum & 0xff;
+// }
+
 
 /**
  * @brief packet handler
@@ -142,7 +134,7 @@ static void __packet_handler(led15093_frame_t* frame) {
   // no need to process the packet if no callback is set
   if(_callback == NULL) return;
 
-  switch(frame->payload[0]) {
+  switch(frame->cmd) {
 
     // reset the board
     case led15093_cmd_reset:
@@ -154,45 +146,102 @@ static void __packet_handler(led15093_frame_t* frame) {
 
     // turn board into slient mode
     case led15093_cmd_set_disable_response:
+      led_toggle();
     break;
 
   }
 
 }
 
-/**
- * @brief weak function. uart rx complete callback
- *
- * @param huart the uart handle
- */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+#define __state_escape_set(x) ((x).state.escape = 1)
+#define __state_escape_unset(x) ((x).state.escape = 0)
+#define __state_is_escape(x) ((x).state.escape == 1)
+#define __state_write(x, y, z) { \
+  *((x).state.ref->buffer.data + (x).state.len) = (y); \
+  (x).state.len++; \
+  (x).state.checksum += (z) ? (y) : 0; \
+}
 
-  // start to read the body and checksum
-  if(_recv_ctx.state == recv_state_header) {
-    __packet_recv_it(recv_state_body);
-    return;
+#define __state_reset(x) { \
+  (x).state.len = 0; \
+  (x).state.checksum = 0; \
+}
+
+#define __state_is_complete(x) \
+  (((x).state.len > 4) && (((x).state.len) - 5) == ((x).state.ref->header.length))
+
+static size_t __packet_recv_parse(uint8_t* data, size_t length) {
+
+  uint8_t* i = data;
+  uint8_t* _end = data + length;
+  
+  // packet example 1
+  // E0 11 01 08 | 32 00 20 00 00 00 00 00 | 6C
+  //          ^                              ^
+  //          data length                    checksum
+
+  // packet example 2
+  // E0 11 01 04 | 39 | D0 CF | D0 CF | FF EE
+  //          ^         ^       ^          ^
+  //          length    escape  escape     checksum
+
+  for(; i < _end; ++i) switch(*i) {
+
+    // the sync byte
+    case '\xe0':
+      __state_reset(_recv_ctx);
+      __state_escape_unset(_recv_ctx);
+      __state_write(_recv_ctx, *i, false);
+    break;
+
+    // unescape byte by add 1
+    case '\x0d':
+      if(__state_is_escape(_recv_ctx)) {
+        __state_write(_recv_ctx, (*i + __state_is_escape(_recv_ctx)), true);
+        __state_escape_unset(_recv_ctx);
+      }
+      else __state_escape_set(_recv_ctx);
+    break;
+
+    // default. write a byte to buffer
+    default:
+    
+      // write data to the buffer
+      __state_write(_recv_ctx, (*i + __state_is_escape(_recv_ctx)), true);
+      __state_escape_unset(_recv_ctx);
+
+      // compare packet is recv complete
+      if(__state_is_complete(_recv_ctx)) {
+        run_async(__packet_handler, 1, __packet_swap_frame());
+        __state_reset(_recv_ctx);
+      }
+
+    break;
   }
 
-  // okay. we have received one packet
-  else if (_recv_ctx.state == recv_state_body) {
+  // log_debug(TAG, "recv: %d", length);
+  return length;
+}
 
-    // get checksum
-    uint8_t _chksum = 0; {
-      uint8_t* _ptr = (uint8_t *)_recv_ctx.current;
-      _ptr += 4 + _recv_ctx.current->length;
-      _chksum = *_ptr;
-    }
+#define __dma_recv(x) ((x).dma.recv)
+#define __dma_recv_clr(x) ((x).dma.recv = 0)
+#define __dma_recv_inc(x, y) ((x).dma.recv += (y))
+#define __dma_recv_buf(x) ((x).dma.buffer + (x).dma.recv)
 
-    // validate the checksum
-    // if correct, swap the frame and start parse
-    if(__packet_calc_checksum(_recv_ctx.current) == _chksum) {
-      run_async(__packet_handler, 1, __packet_swap_frame());
-    }
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
 
-    // restart the recv
-    __packet_recv_it(recv_state_header);
+  size_t _recvlen = __dma_recv(_recv_ctx);
+  if(size == _recvlen) return;
 
-    return;
+  // reset recv counter
+  if(size < _recvlen) {
+    __dma_recv_clr(_recv_ctx);
+  }
+
+  // when received to idle, start process the bytes
+  else if(_recvlen < size) {
+    size_t _read = __packet_recv_parse(__dma_recv_buf(_recv_ctx), size - _recvlen);
+    __dma_recv_inc(_recv_ctx, _read);
   }
 }
 
@@ -214,14 +263,20 @@ void led15093_init() {
     HAL_UART_Init(&_uart1);
     HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
+  }
 
+  __HAL_RCC_DMA2_CLK_ENABLE(); {
+    HAL_DMA_Init(&_dma_uart1);
+    __HAL_LINKDMA(&_uart1, hdmarx, _dma_uart1);
+    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
   }
 
   log_info(TAG, "led15093 board initialized");
 
   // start receive
   __packet_swap_frame();
-  __packet_recv_it(recv_state_header);
+  __packet_recv_dma();
   log_info(TAG, "listening on the serial data...");
 
 }

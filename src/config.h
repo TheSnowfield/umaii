@@ -33,7 +33,7 @@
  * while `UMAIIDX_ENABLE_LOGPRINT` is enabled, debug logs
  * will print to serial, which is using the muxed TX serial port of the light control.
  */
-// #define UMAIIDX_ENABLE_LOGPRINT
+#define UMAIIDX_ENABLE_LOGPRINT
 #ifdef UMAIIDX_ENABLE_LOGPRINT
   #define UMAIIDX_LOG_FMTSIZE 256
 #endif

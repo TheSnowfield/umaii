@@ -30,7 +30,9 @@
             "utility": "c",
             "vector": "c",
             "cstdlib": "c",
-            "algorithm": "c"
+            "algorithm": "c",
+            "__string": "c",
+            "chrono": "c"
         },
         "[yaml]": {
             "editor.insertSpaces": true,

@@ -9,6 +9,8 @@
 
 #include "logprint.h"
 
+#ifdef UMAIIDX_ENABLE_LOGPRINT
+
 /**
  * @brief print log
  *
@@ -35,6 +37,8 @@ void __callback_logprint(loglevel_t level, const char* tag, const char* fmt, va_
 
   logprint_print_ex("\r\n", 2);
 }
+
+#endif
 
 void logprint_init() {
 #ifdef UMAIIDX_ENABLE_LOGPRINT
