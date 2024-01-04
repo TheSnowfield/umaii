@@ -74,8 +74,6 @@ void DMA2_Stream2_IRQHandler() {
   HAL_DMA_IRQHandler(&_dma_uart1);
 }
 
-#define __packet_total_length(p) (4 + (p)->length + 1)
-
 /**
  * @brief swap the frame buffer
  * calling this function when start to recving a new packet
@@ -100,28 +98,6 @@ static led15093_frame_t* __packet_swap_frame() {
 static void __packet_recv_dma() {
   HAL_UARTEx_ReceiveToIdle_DMA(&_uart1, _recv_ctx.dma.buffer, DMASIZE);
 }
-
-// /**
-//  * @brief calculate checksum
-//  *
-//  * @param frame the packet frame
-//  * @return uint8_t checksum
-//  */
-// static uint8_t __packet_calc_checksum(led15093_frame_t* frame) {
-
-//   uint32_t _sum = 0;
-//   uint8_t* _srtcalc = (uint8_t *)frame + 1;
-//   uint8_t* _endcalc = _srtcalc + 3 + frame->length;
-
-//   // calclate checksum
-//   for(uint8_t* i = _srtcalc; i < _endcalc; ++i) {
-//     _sum += *i;
-//   }
-
-//   // teardown low 1 byte
-//   return _sum & 0xff;
-// }
-
 
 /**
  * @brief packet handler
@@ -185,6 +161,15 @@ static size_t __packet_recv_parse(uint8_t* data, size_t length) {
   //          ^         ^       ^          ^
   //          length    escape  escape     checksum
 
+  // I decided the checksum was useless here due to the protocol
+  // has its sync byte as 0xE0.
+
+  // When the checksum is not correct we have to drop it,
+  // because we can't recover the data of the packet or request to re-transmit.
+
+  // Thus even if the packet is broken, we completely can use the sync byte to
+  // reset the context and then continue receiving (drop it).
+
   for(; i < _end; ++i) switch(*i) {
 
     // the sync byte
@@ -206,7 +191,7 @@ static size_t __packet_recv_parse(uint8_t* data, size_t length) {
     // default. write a byte to buffer
     default:
     
-      // write data to the buffer
+      // write data(or unescape) to the buffer
       __state_write(_recv_ctx, (*i + __state_is_escape(_recv_ctx)), true);
       __state_escape_unset(_recv_ctx);
 
@@ -265,6 +250,7 @@ void led15093_init() {
     HAL_NVIC_EnableIRQ(USART1_IRQn);
   }
 
+  // init uart rx dma stream
   __HAL_RCC_DMA2_CLK_ENABLE(); {
     HAL_DMA_Init(&_dma_uart1);
     __HAL_LINKDMA(&_uart1, hdmarx, _dma_uart1);
