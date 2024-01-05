@@ -18,6 +18,8 @@ typedef enum {
   led15093_cmd_set_disable_response = 0x14,
   led15093_cmd_set_id = 0x18,
   led15093_cmd_clear_id = 0x19,
+  led15093_cmd_set_led_channel = 0x31,
+  led15093_cmd_set_frame_bright = 0x39,
   led15093_cmd_set_max_bright = 0x3f,
   led15093_cmd_update_led = 0x81,
   led15093_cmd_set_imm_led = 0x82,

@@ -1,9 +1,10 @@
 #include <math.h>
+#include <config.h>
 #include <sys/tick.h>
 #include <sys/debug.h>
-#include <frost/api.h>
 #include <hardware/ws2812.h>
 #include <board/led15093.h>
+#include <frost/api.h>
 
 #include "light.h"
 
@@ -13,9 +14,9 @@ typedef void(* effect_runner_t)(uint64_t time);
 
 /**
  * @brief [anim renderer] rainbow spinning effect
+ * todo
  */
 static void __anim_renderer_rainbow_spin(uint64_t time) {
-
 
 }
 
@@ -86,22 +87,61 @@ static void __callback_task_anim() {
   _renderer(tick_get_time());
 }
 
+#define __enum_led_group(_iter, _ind, _expr) \
+  for(size_t _iter = ((_ind) * UMAIIDX_LIGHT_BTNLEDS); \
+  _iter < ((_ind) * UMAIIDX_LIGHT_BTNLEDS + UMAIIDX_LIGHT_BTNLEDS); ++_iter) \
+  _expr
+
 /**
  * @brief board 15093 light control board
+ * do not call this function in the interrupt
+ *
+ * @param frame the packet frame
  */
-static void __callback_passive_handler(led15093_event_t event) {
+static void __callback_passive_handler(led15093_frame_t* frame) {
 
-  switch(event) {
+  switch(frame->cmd) {
 
-    // host connected. turn into passive mode
-    case led15093_event_connected:
+    // reset the board
+    case led15093_cmd_reset:
       light_show_mode(light_mode_passive, 0);
       log_info(TAG, "host connection established, enter passive mode.");
-      break;
+    break;
 
-      // todo: update leds
-      case led15093_event_update:
-      break;
+    // turn board into slient mode
+    case led15093_cmd_set_disable_response:
+    break;
+
+    // set single led color
+    case led15093_cmd_set_led_channel:
+
+      __enum_led_group(i, frame->payload.pkt_ledctl.index, {
+        ws2812_set_pixel(i, ws2812_rgb(
+          frame->payload.pkt_ledctl.r,
+          frame->payload.pkt_ledctl.g,
+          frame->payload.pkt_ledctl.b
+        ));
+      });
+
+    break;
+
+    case 0x32:
+
+      for(size_t i = frame->payload.pkt_batchctl.index + frame->payload.pkt_batchctl.skip;
+        i < frame->payload.pkt_batchctl.index + frame->payload.pkt_batchctl.length; ++i) {
+
+        __enum_led_group(j, frame->payload.pkt_batchctl.index, {
+          ws2812_set_pixel(j, ws2812_rgb(
+            frame->payload.pkt_batchctl.r,
+            frame->payload.pkt_batchctl.g,
+            frame->payload.pkt_batchctl.b
+          ));
+        });
+
+      }
+
+    break;
+
   }
 
 }

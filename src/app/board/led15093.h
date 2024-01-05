@@ -4,12 +4,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef enum {
-  led15093_event_connected,
-  led15093_event_update,
-} led15093_event_t;
+#include "led15093_cmd.h"
+#include "led15093_frame.h"
 
-typedef void (* led15093_passive_cb_t)(led15093_event_t e);
+typedef void (* led15093_passive_cb_t)(led15093_frame_t* f);
 
 /**
  * @brief led board init
@@ -34,5 +32,10 @@ void led15093_set_callback(led15093_passive_cb_t cb);
  * @brief exti nvic handler. see stm32f4xx_it.c
  */
 void __exti_usart1_handler();
+
+/**
+ * @brief exti nvic handler. see stm32f4xx_it.c
+ */
+void __exti_dma2s2_handler();
 
 #endif /* _APP_BOARD_LED15093_H */

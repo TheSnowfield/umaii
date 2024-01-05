@@ -35,14 +35,14 @@ typedef struct {
   uint8_t dest;
   uint8_t source;
   uint8_t length;
-} packed led15093_header_t;
+} packed1 led15093_header_t;
 
 typedef struct {
   uint8_t index;
   uint8_t r;
   uint8_t g;
   uint8_t b;
-} packed led15093_ledclr_t;
+} packed1 led15093_led_color_t;
 
 typedef struct {
   uint8_t index;
@@ -52,7 +52,7 @@ typedef struct {
   uint8_t g;
   uint8_t b;
   uint8_t factor;
-} packed led15093_batchctl_t;
+} packed1 led15093_led_batch_t;
 
 typedef union {
   
@@ -70,8 +70,8 @@ typedef union {
         uint8_t data[254 + 1];
       } common;
 
-      led15093_ledclr_t pkt_ledclr;
-      led15093_batchctl_t pkt_batchctl;
+      led15093_led_color_t pkt_ledctl;
+      led15093_led_batch_t pkt_batchctl;
     } payload;
 
   };

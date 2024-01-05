@@ -3,7 +3,6 @@
 #include <config.h>
 #include <sys/debug.h>
 #include <hardware/common.h>
-#include <app/led.h>
 #include <frost/api.h>
 #include <frost/tricks.h>
 
@@ -35,9 +34,6 @@ static DMA_HandleTypeDef _dma_uart1 = {
   .Init.FIFOMode = DMA_FIFOMODE_DISABLE,
 };
 
-#define DMASIZE 512
-#define SWAPSIZE 32
-
 typedef struct {
   bool init;
 
@@ -50,12 +46,12 @@ typedef struct {
 
   struct {
     uint8_t index;
-    led15093_frame_t pool[SWAPSIZE];
+    led15093_frame_t pool[UMAIIDX_LED15093_QSIZE];
   } swap;
 
   struct {
     size_t recv;
-    uint8_t buffer[DMASIZE];
+    uint8_t buffer[UMAIIDX_LED15093_DMABUFFER];
   } dma;
 
 } recv_context_t;
@@ -63,25 +59,22 @@ typedef struct {
 static led15093_passive_cb_t _callback = NULL;
 static recv_context_t _recv_ctx = {0};
 
-/**
- * @brief exti nvic handler. see stm32f4xx_it.c
- */
 void __exti_usart1_handler() {
   HAL_UART_IRQHandler(&_uart1);
 }
 
-void DMA2_Stream2_IRQHandler() {
+void __exti_dma2s2_handler() {
   HAL_DMA_IRQHandler(&_dma_uart1);
 }
 
 /**
  * @brief swap the frame buffer
- * calling this function when start to recving a new packet
+ * calling this function when starts to receiving a new packet
  */
 static led15093_frame_t* __packet_swap_frame() {
   
   // ring buffer
-  if(++_recv_ctx.swap.index >= SWAPSIZE) {
+  if(++_recv_ctx.swap.index >= UMAIIDX_LED15093_QSIZE) {
     _recv_ctx.swap.index = 0;
   }
 
@@ -93,41 +86,10 @@ static led15093_frame_t* __packet_swap_frame() {
 }
 
 /**
- * @brief receive packet part in interrupt mode
+ * @brief receive data stream to idle
  */
 static void __packet_recv_dma() {
-  HAL_UARTEx_ReceiveToIdle_DMA(&_uart1, _recv_ctx.dma.buffer, DMASIZE);
-}
-
-/**
- * @brief packet handler
- * do not call this function in the interrupt
- *
- * @param frame the packet frame
- */
-static void __packet_handler(led15093_frame_t* frame) {
-
-  // no need to process the packet if no callback is set
-  if(_callback == NULL) return;
-
-  led_toggle();
-
-  switch(frame->cmd) {
-
-    // reset the board
-    case led15093_cmd_reset:
-      if(!_recv_ctx.init) {
-        _callback(led15093_event_connected);
-        _recv_ctx.init = true;
-      }
-    break;
-
-    // turn board into slient mode
-    case led15093_cmd_set_disable_response:
-    break;
-
-  }
-
+  HAL_UARTEx_ReceiveToIdle_DMA(&_uart1, _recv_ctx.dma.buffer, UMAIIDX_LED15093_DMABUFFER);
 }
 
 #define __state_escape_set(x) ((x).state.escape = 1)
@@ -197,8 +159,8 @@ static size_t __packet_recv_parse(uint8_t* data, size_t length) {
       __state_escape_unset(_recv_ctx);
 
       // compare packet is recv complete
-      if(__state_is_complete(_recv_ctx)) {
-        run_async(__packet_handler, 1, __packet_swap_frame());
+      if(__state_is_complete(_recv_ctx) && _callback) {
+        run_async(_callback, 1, __packet_swap_frame());
         __state_reset(_recv_ctx);
       }
 
