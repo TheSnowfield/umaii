@@ -36,7 +36,7 @@ static DMA_HandleTypeDef _dma_uart1 = {
 };
 
 #define DMASIZE 512
-#define SWAPSIZE 64
+#define SWAPSIZE 32
 
 typedef struct {
   bool init;
@@ -110,6 +110,8 @@ static void __packet_handler(led15093_frame_t* frame) {
   // no need to process the packet if no callback is set
   if(_callback == NULL) return;
 
+  led_toggle();
+
   switch(frame->cmd) {
 
     // reset the board
@@ -122,7 +124,6 @@ static void __packet_handler(led15093_frame_t* frame) {
 
     // turn board into slient mode
     case led15093_cmd_set_disable_response:
-      led_toggle();
     break;
 
   }
@@ -165,10 +166,10 @@ static size_t __packet_recv_parse(uint8_t* data, size_t length) {
   // has its sync byte as 0xE0.
 
   // When the checksum is not correct we have to drop it,
-  // because we can't recover the data of the packet or request to re-transmit.
+  // because we can't recover the data of the packet or request host to re-transmit.
 
-  // Thus even if the packet is broken, we completely can use the sync byte to
-  // reset the context and then continue receiving (drop it).
+  // Thus even if the packet is broken, we completely can wait for the
+  // sync byte in the next, to reset the context and then continue receiving (drop it).
 
   for(; i < _end; ++i) switch(*i) {
 
@@ -180,7 +181,7 @@ static size_t __packet_recv_parse(uint8_t* data, size_t length) {
     break;
 
     // unescape byte by add 1
-    case '\x0d':
+    case '\xd0':
       if(__state_is_escape(_recv_ctx)) {
         __state_write(_recv_ctx, (*i + __state_is_escape(_recv_ctx)), true);
         __state_escape_unset(_recv_ctx);
