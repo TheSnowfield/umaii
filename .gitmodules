@@ -1,9 +1,9 @@
+[submodule "third-party/tinyusb"]
+	path = third-party/tinyusb
+	url = https://github.com/hathach/tinyusb
 [submodule "third-party/frost"]
 	path = third-party/frost
 	url = https://github.com/TheSnowfield/frost
 [submodule "third-party/rucfs"]
 	path = third-party/rucfs
 	url = https://github.com/TheSnowfield/rucfs
-[submodule "third-party/tinyusb"]
-	path = third-party/tinyusb
-	url = https://github.com/hathach/tinyusb
