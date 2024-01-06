@@ -6,13 +6,13 @@
 #include <frost/api.h>
 #include <frost/tricks.h>
 
-#include "led15093.h"
-#include "led15093_cmd.h"
-#include "led15093_frame.h"
+#include "led15070.h"
+#include "led15070_cmd.h"
+#include "led15070_frame.h"
 
 static UART_HandleTypeDef _uart1 = {
   .Instance = USART1,
-  .Init.BaudRate= UMAIIDX_LIGHT_BAUDRATE,
+  .Init.BaudRate= UMAIIDX_COMIO_BAUDRATE,
   .Init.WordLength = UART_WORDLENGTH_8B,
   .Init.StopBits = UART_STOPBITS_1,
   .Init.Parity = UART_PARITY_NONE,
@@ -41,22 +41,22 @@ typedef struct {
     size_t len;
     size_t checksum;
     uint8_t escape;
-    led15093_frame_t* ref;
+    led15070_frame_t* ref;
   } state;
 
   struct {
     uint8_t index;
-    led15093_frame_t pool[UMAIIDX_LED15093_QSIZE];
+    led15070_frame_t pool[UMAIIDX_COMIO_QSIZE];
   } swap;
 
   struct {
     size_t recv;
-    uint8_t buffer[UMAIIDX_LED15093_DMABUFFER];
+    uint8_t buffer[UMAIIDX_COMIO_DMABUFFER];
   } dma;
 
 } recv_context_t;
 
-static led15093_passive_cb_t _callback = NULL;
+static led15070_passive_cb_t _callback = NULL;
 static recv_context_t _recv_ctx = {0};
 
 void __exti_usart1_handler() {
@@ -69,17 +69,17 @@ void __exti_dma2s2_handler() {
 
 /**
  * @brief swap the frame buffer
- * calling this function when starts to receiving a new packet
+ * calling this function when starts to receive a new packet
  */
-static led15093_frame_t* __packet_swap_frame() {
+static led15070_frame_t* __packet_swap_frame() {
   
   // ring buffer
-  if(++_recv_ctx.swap.index >= UMAIIDX_LED15093_QSIZE) {
+  if(++_recv_ctx.swap.index >= UMAIIDX_COMIO_QSIZE) {
     _recv_ctx.swap.index = 0;
   }
 
   // apply the new frame
-  led15093_frame_t* _old = _recv_ctx.state.ref;
+  led15070_frame_t* _old = _recv_ctx.state.ref;
   _recv_ctx.state.ref = &_recv_ctx.swap.pool[_recv_ctx.swap.index];
 
   return _old;
@@ -89,7 +89,7 @@ static led15093_frame_t* __packet_swap_frame() {
  * @brief receive data stream to idle
  */
 static void __packet_recv_dma() {
-  HAL_UARTEx_ReceiveToIdle_DMA(&_uart1, _recv_ctx.dma.buffer, UMAIIDX_LED15093_DMABUFFER);
+  HAL_UARTEx_ReceiveToIdle_DMA(&_uart1, _recv_ctx.dma.buffer, UMAIIDX_COMIO_DMABUFFER);
 }
 
 #define __state_escape_set(x) ((x).state.escape = 1)
@@ -193,7 +193,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
   }
 }
 
-void led15093_init() {
+void led15070_init() {
 
   // init uart
   __HAL_RCC_USART1_CLK_ENABLE(); {
@@ -221,7 +221,7 @@ void led15093_init() {
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
   }
 
-  log_info(TAG, "led15093 board initialized");
+  log_info(TAG, "led15070 board initialized");
 
   // start receive
   __packet_swap_frame();
@@ -230,10 +230,10 @@ void led15093_init() {
 
 }
 
-void led15093_set_callback(led15093_passive_cb_t cb) {
+void led15070_set_callback(led15070_passive_cb_t cb) {
   _callback = cb;
 }
 
-void led15093_mux_uart_tx(uint8_t* data, size_t length) {
+void led15070_mux_uart_tx(uint8_t* data, size_t length) {
   HAL_UART_Transmit(&_uart1, data, length, HAL_MAX_DELAY);
 }

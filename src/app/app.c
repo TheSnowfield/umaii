@@ -52,10 +52,18 @@ void appmain() {
     logprint_print("Welcome to UmaiiDX!\r\n");
     logprint_print(BUILD_VERSION);
     logprint_print("\r\n===================================\r\n");
+    // logprint_print("Compiled features:\r\n");
+    // logprint_print("UMAIIDX_PHOTO_INTERRUPTER: %d\r\n",   UMAIIDX_PHOTO_INTERRUPTER);
+    // logprint_print("UMAIIDX_TOUCHPANEL_BAUDRATE: %d\r\n", UMAIIDX_TOUCHPANEL_BAUDRATE);
+    // logprint_print("UMAIIDX_COMIO_BAUDRATE: %d\r\n",      UMAIIDX_COMIO_BAUDRATE);
+    // logprint_print("UMAIIDX_LIGHT_BTNLEDS: %d\r\n",       UMAIIDX_LIGHT_BTNLEDS);
+    // logprint_print("UMAIIDX_LED15070_DMABUFFER: %d\r\n",  UMAIIDX_LED15070_DMABUFFER);
+    // logprint_print("UMAIIDX_LED15070_QSIZE: %d\r\n",      UMAIIDX_LED15070_QSIZE);
+    // logprint_print("\r\n===================================\r\n");
   }
 
   // turn on led strip
-  light_init(3 * 8); {
+  light_init(8 * UMAIIDX_LIGHT_BTNLEDS); {
 #ifdef UMAIIDX_LIGHT_BOOTANIM
     light_show_mode(BOOTANIM_TYPE, BOOTANIM_SPEED);
 #endif

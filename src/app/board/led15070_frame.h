@@ -1,5 +1,5 @@
-#ifndef _APP_BOARD_LED15093_FRAME_H
-#define _APP_BOARD_LED15093_FRAME_H
+#ifndef _APP_BOARD_LED15070_FRAME_H
+#define _APP_BOARD_LED15070_FRAME_H
 
 /**
  * best thanks to segatool for offering this reference!
@@ -35,33 +35,33 @@ typedef struct {
   uint8_t dest;
   uint8_t source;
   uint8_t length;
-} packed1 led15093_header_t;
+} packed1 led15070_header_t;
 
 typedef struct {
   uint8_t index;
   uint8_t r;
   uint8_t g;
   uint8_t b;
-} packed1 led15093_led_color_t;
+} packed1 led15070_led_color_t;
 
 typedef struct {
-  uint8_t index;
-  uint8_t length;
+  uint8_t start;
+  uint8_t end;
   uint8_t skip;
   uint8_t r;
   uint8_t g;
   uint8_t b;
-  uint8_t factor;
-} packed1 led15093_led_batch_t;
+  uint8_t speed;
+} packed1 led15070_led_batch_t;
 
 typedef union {
   
   struct {
-    uint8_t data[sizeof(led15093_header_t) + 255 + 1];
+    uint8_t data[sizeof(led15070_header_t) + 255 + 1];
   } buffer;
 
   struct {
-    led15093_header_t header;
+    led15070_header_t header;
     uint8_t cmd;
 
     union {
@@ -70,12 +70,12 @@ typedef union {
         uint8_t data[254 + 1];
       } common;
 
-      led15093_led_color_t pkt_ledctl;
-      led15093_led_batch_t pkt_batchctl;
+      led15070_led_color_t pkt_ledctl;
+      led15070_led_batch_t pkt_batchctl;
     } payload;
 
   };
 
-} led15093_frame_t;
+} led15070_frame_t;
 
-#endif /* _APP_BOARD_LED15093_FRAME_H */
+#endif /* _APP_BOARD_LED15070_FRAME_H */

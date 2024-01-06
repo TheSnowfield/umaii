@@ -5,7 +5,7 @@
 #include <sys/debug.h>
 #include <sys/tick.h>
 #include <hardware/common.h>
-#include <board/led15093.h>
+#include <board/led15070.h>
 
 #include "logprint.h"
 
@@ -52,6 +52,6 @@ void logprint_print(const char* str) {
 
 void logprint_print_ex(const char* str, size_t size) {
 #ifdef UMAIIDX_ENABLE_LOGPRINT
-  led15093_mux_uart_tx((uint8_t *)str, size);
+  led15070_mux_uart_tx((uint8_t *)str, size);
 #endif
 }

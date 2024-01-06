@@ -3,7 +3,7 @@
 #include <sys/tick.h>
 #include <sys/debug.h>
 #include <hardware/ws2812.h>
-#include <board/led15093.h>
+#include <board/led15070.h>
 #include <frost/api.h>
 
 #include "light.h"
@@ -93,27 +93,31 @@ static void __callback_task_anim() {
   _expr
 
 /**
- * @brief board 15093 light control board
+ * @brief board 15070 light control board
  * do not call this function in the interrupt
  *
  * @param frame the packet frame
  */
-static void __callback_passive_handler(led15093_frame_t* frame) {
+static void __callback_passive_handler(led15070_frame_t* frame) {
 
   switch(frame->cmd) {
 
     // reset the board
-    case led15093_cmd_reset:
+    case led15070_cmd_reset:
       light_show_mode(light_mode_passive, 0);
       log_info(TAG, "host connection established, enter passive mode.");
     break;
 
-    // turn board into slient mode
-    case led15093_cmd_set_disable_response:
+    // board no: 15070-02
+    case led15070_cmd_get_board_info:
+      //led15070_mux_uart_tx((uint8_t[]){0xe0, 0x01, 0x11, 0x0x, 0x00, 240, 0x01, }, );
+    break;
+
+    case led15070_cmd_get_protocol_ver:
     break;
 
     // set single led color
-    case led15093_cmd_set_led_channel:
+    case led15070_cmd_set_led_gs_8bit:
 
       __enum_led_group(i, frame->payload.pkt_ledctl.index, {
         ws2812_set_pixel(i, ws2812_rgb(
@@ -125,12 +129,13 @@ static void __callback_passive_handler(led15093_frame_t* frame) {
 
     break;
 
-    case 0x32:
+    case led15070_cmd_set_led_gs_8bit_multi:
+    case led15070_cmd_set_led_gs_8bit_multi_fade:
 
-      for(size_t i = frame->payload.pkt_batchctl.index + frame->payload.pkt_batchctl.skip;
-        i < frame->payload.pkt_batchctl.index + frame->payload.pkt_batchctl.length; ++i) {
+      for(size_t i = frame->payload.pkt_batchctl.start + frame->payload.pkt_batchctl.skip;
+        i < frame->payload.pkt_batchctl.end; ++i) {
 
-        __enum_led_group(j, frame->payload.pkt_batchctl.index, {
+        __enum_led_group(j, i, {
           ws2812_set_pixel(j, ws2812_rgb(
             frame->payload.pkt_batchctl.r,
             frame->payload.pkt_batchctl.g,
@@ -168,8 +173,8 @@ void light_init(size_t count) {
 
   // passive mode
   // init led control board
-  led15093_init(); {
-    led15093_set_callback(&__callback_passive_handler);
+  led15070_init(); {
+    led15070_set_callback(&__callback_passive_handler);
   }
 
 }
