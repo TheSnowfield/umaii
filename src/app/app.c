@@ -88,9 +88,9 @@ void appmain() {
   // }
 
   // initialize touch panel
-  touchpanel_init(); {
-    // touchpanel_enable_irq(true);
-  }
+  // touchpanel_init(); {
+  //   // touchpanel_enable_irq(true);
+  // }
 
   // initialize game button
   gamebtn_init(); {

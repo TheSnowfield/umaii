@@ -4,7 +4,7 @@
 #include <sys/fault.h>
 #include <hardware/common.h>
 #include <app/input/gamebtn.h>
-#include <app/board/led15093.h>
+#include <app/board/led15070.h>
 
 #include <tusb.h>
 
@@ -122,6 +122,10 @@ void EXTI4_IRQHandler(void) {
   */
 void USART1_IRQHandler(void) {
   __exti_usart1_handler();
+}
+
+void DMA2_Stream2_IRQHandler() {
+  __exti_dma2s2_handler();
 }
 
 /**

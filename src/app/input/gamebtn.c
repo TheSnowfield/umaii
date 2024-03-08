@@ -3,6 +3,7 @@
 #include <hardware/common.h>
 #include <frost/api.h>
 #include <config.h>
+#include <board/led15070.h>
 
 #include "gamebtn.h"
 
@@ -60,16 +61,12 @@ void __exti_gamebtn_handler(uint16_t pin) {
   // clear the flag
   __HAL_GPIO_EXTI_CLEAR_IT(pin);
 
-  // update button state
+  // new button state
   gamebtn_stat_t _newstat = __button_status();
-  if(_newstat != _old_status) {
-
-    log_debug(TAG, "old: %d, new: %d", _old_status, _newstat);
-    _old_status = _newstat;
-
-    // _newstat
-
-  }
+#ifdef UMAIIDX_LIGHT_MUX_GAMEBTN
+    led15070_mux_uart_tx((uint8_t*)&_newstat, 2);
+#endif
+  // }
 }
 
 void gamebtn_init() {

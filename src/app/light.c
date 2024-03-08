@@ -5,6 +5,7 @@
 #include <hardware/ws2812.h>
 #include <board/led15070.h>
 #include <frost/api.h>
+#include <app/led.h>
 
 #include "light.h"
 
@@ -104,16 +105,24 @@ static void __callback_passive_handler(led15070_frame_t* frame) {
 
     // reset the board
     case led15070_cmd_reset:
+      led_toggle();
+      led15070_mux_uart_tx((uint8_t[]){0xe0, 0x01, 0x11, 0x03, 0x01, 16, 0x01, 39 }, 8);
+
       light_show_mode(light_mode_passive, 0);
       log_info(TAG, "host connection established, enter passive mode.");
+
     break;
 
     // board no: 15070-02
     case led15070_cmd_get_board_info:
-      //led15070_mux_uart_tx((uint8_t[]){0xe0, 0x01, 0x11, 0x0x, 0x00, 240, 0x01, }, );
+      led_toggle();
+      // led15070_mux_uart_tx((uint8_t[]){0xe0, 0x01, 0x11, 0x0d, 0x00, 240, 0x01,
+      //                                 '1', '5', '0', '7', '0', '-', '0', '2',
+      //                                 0xff, 0x90, 0x0c }, 18);
     break;
 
     case led15070_cmd_get_protocol_ver:
+      // led_enable(false);
     break;
 
     // set single led color

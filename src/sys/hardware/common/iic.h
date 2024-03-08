@@ -20,6 +20,12 @@ typedef struct {
 #define bytes (uint8_t [])
 #define END_OF_CMD { 0, 0, 0, NULL }
 
+typedef HAL_StatusTypeDef (* iic_write_impl_t)(void *hi2c, uint16_t DevAddress, uint16_t MemAddress,
+uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+
+typedef HAL_StatusTypeDef (* iic_read_impl_t)(void *hi2c, uint16_t DevAddress, uint16_t MemAddress,
+uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+
 /**
  * @brief initialize iic slave device with a command table
  * @param inst hal iic peripheral
@@ -28,7 +34,7 @@ typedef struct {
  * @return true
  * @return false
  */
-bool iic_pattern_init(I2C_HandleTypeDef* inst, uint16_t addr, const iic_cmddef_t* pattern);
+bool iic_pattern_init(void* inst, uint16_t addr, const iic_cmddef_t* pattern, bool isfmp);
 
 /**
  * @brief read data from slave device
@@ -51,5 +57,9 @@ HAL_StatusTypeDef iic_read(I2C_HandleTypeDef* inst, uint16_t addr, uint16_t reg,
  * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef iic_write(I2C_HandleTypeDef* inst, uint16_t addr, uint16_t reg, uint8_t* data, uint16_t length);
+
+
+HAL_StatusTypeDef iic_read_ex(void* inst, uint16_t addr, uint16_t reg, uint8_t* data, uint16_t length, iic_read_impl_t cb);
+HAL_StatusTypeDef iic_write_ex(void* inst, uint16_t addr, uint16_t reg, uint8_t* data, uint16_t length, iic_write_impl_t cb);
 
 #endif /* _SYS_HARDWARE_DRIVER_COMMON_IIC_H */

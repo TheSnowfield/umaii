@@ -33,7 +33,7 @@
  * while `UMAIIDX_ENABLE_LOGPRINT` is enabled, debug logs
  * will print to serial, which is using the muxed TX serial port of the light control.
  */
-#define UMAIIDX_ENABLE_LOGPRINT
+//#define UMAIIDX_ENABLE_LOGPRINT
 #ifdef UMAIIDX_ENABLE_LOGPRINT
   #define UMAIIDX_LOG_FMTSIZE 256
 #endif
@@ -46,6 +46,12 @@
 #define PNP_NORMAL_OPEN   1
 #define NPN_NORMAL_CLOSED 2
 #define NPN_NORMAL_OPEN   3
+
+/**
+ * @brief COM IO board type
+ */
+#define COMIO_BOARD_15070
+// #define COMIO_BOARD_15090
 
 /**
  * @brief photo interrupter type
@@ -75,7 +81,7 @@
  * after commenting UMAIIDX_GAMEBTN_HID, the input will be transmitted over serial.
  * serial mode must be supported by segatool custom io (mai2.dll).
  */
-#define UMAIIDX_GAMEBTN_HID
+//#define UMAIIDX_GAMEBTN_HID
 #ifdef UMAIIDX_GAMEBTN_HID
   #define BOARD_15257_VID 0x0ca3
   #define BOARD_15257_PID 0x0021
@@ -95,11 +101,47 @@
 #endif
 
 /**
- * @brief light control serial baud rate
+ * @brief comio board type
  */
-// #define UMAIIDX_LIGHT_CONTROL
-#ifndef UMAIIDX_LIGHT_BAUDRATE
-  #define UMAIIDX_LIGHT_BAUDRATE 115200
+#ifndef UMAIIDX_COMIO_BOARD
+  #define UMAIIDX_COMIO_BOARD COMIO_BOARD_15070
+#endif
+
+/**
+ * @brief comio serial baud rate
+ */
+#ifndef UMAIIDX_COMIO_BAUDRATE
+  #define UMAIIDX_COMIO_BAUDRATE 921600
+#endif
+
+/**
+ * @brief dma buffer size
+ *
+ * declare the size of dma buffer for receiving comio packet
+ * should not exceed 1024, better greater than 512
+ */
+#ifndef UMAIIDX_COMIO_DMABUFFER
+  #define UMAIIDX_COMIO_DMABUFFER 512
+#endif
+
+/**
+ * @brief comio packet queue max size
+ *
+ * declare the max size of comio packet queue
+ * should not exceed 64, better greater than 16
+ */
+#ifndef UMAIIDX_COMIO_QSIZE
+  #define UMAIIDX_COMIO_QSIZE 32
+#endif
+
+/**
+ * @brief declares the number of ws2812 leds per game button
+ *
+ * there are 8 game buttons around the display on the MaiMai,
+ * thus 8 * UMAIIDX_LIGHT_BTNLEDS is the total led count.
+ */
+#ifndef UMAIIDX_LIGHT_BTNLEDS
+  #define UMAIIDX_LIGHT_BTNLEDS 3
 #endif
 
 /**
@@ -119,8 +161,8 @@
  */
 #define UMAIIDX_LIGHT_BOOTANIM
 #ifdef UMAIIDX_LIGHT_BOOTANIM
-  #define BOOTANIM_TYPE light_mode_white_breath
-  #define BOOTANIM_SPEED 300
+  #define BOOTANIM_TYPE light_mode_white_spin
+  #define BOOTANIM_SPEED 40
 #endif
 
 #endif /* _CONFIG_H */

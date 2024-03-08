@@ -275,8 +275,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
-                <Size>0x80000</Size>
+                <StartAddress>0x8009000</StartAddress>
+                <Size>0x77000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F412Rx FROST_PORTED_TIME_TICK FROST_PORTED_LOG_PRINT CFG_TUSB_MCU=OPT_MCU_STM32F4  CFG_TUSB_CONFIG_FILE=&lt;app/usb/tusb_config.h&gt;</Define>
+              <Define>STM32F412Rx USER_VECT_TAB_ADDRESS FROST_PORTED_TIME_TICK FROST_PORTED_LOG_PRINT CFG_TUSB_MCU=OPT_MCU_STM32F4  CFG_TUSB_CONFIG_FILE=&lt;app/usb/tusb_config.h&gt;</Define>
               <Undefine></Undefine>
               <IncludePath>src;src/app;src/app/usb;src/sys;src/sys/hardware;src/include;src/core;src/core/include;src/core/hal/include;src/core/device/f411xe;third-party;third-party/frost;third-party/rucfs/src;third-party/STM32F4xx_HAL_Driver/Inc;third-party/tinyusb;third-party/tinyusb/src;third-party/tinyusb/hw;build/Debug</IncludePath>
             </VariousControls>
@@ -524,9 +524,9 @@
               <FilePath>.\src\app\board\io4.c</FilePath>
             </File>
             <File>
-              <FileName>led15093.c</FileName>
+              <FileName>led15070.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\app\board\led15093.c</FilePath>
+              <FilePath>.\src\app\board\led15070.c</FilePath>
             </File>
           </Files>
         </Group>

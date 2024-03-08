@@ -35,14 +35,14 @@ typedef struct {
   uint8_t dest;
   uint8_t source;
   uint8_t length;
-} packed1 led15070_header_t;
+} pack1 led15070_header_t;
 
 typedef struct {
   uint8_t index;
   uint8_t r;
   uint8_t g;
   uint8_t b;
-} packed1 led15070_led_color_t;
+} pack1 led15070_led_color_t;
 
 typedef struct {
   uint8_t start;
@@ -52,7 +52,7 @@ typedef struct {
   uint8_t g;
   uint8_t b;
   uint8_t speed;
-} packed1 led15070_led_batch_t;
+} pack1 led15070_led_batch_t;
 
 typedef union {
   
