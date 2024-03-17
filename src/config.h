@@ -161,8 +161,8 @@
  */
 #define UMAIIDX_LIGHT_BOOTANIM
 #ifdef UMAIIDX_LIGHT_BOOTANIM
-  #define BOOTANIM_TYPE light_mode_white_spin
-  #define BOOTANIM_SPEED 40
+  #define BOOTANIM_TYPE light_mode_passive
+  #define BOOTANIM_SPEED 500
 #endif
 
 #endif /* _CONFIG_H */

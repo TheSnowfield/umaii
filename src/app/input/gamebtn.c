@@ -63,6 +63,11 @@ void __exti_gamebtn_handler(uint16_t pin) {
 
   // new button state
   gamebtn_stat_t _newstat = __button_status();
+  uint16_t _btn_sel = _newstat & 0b1000000000000000;
+  _newstat = _newstat & (~0b1000000000001000);
+
+  if(_btn_sel) _newstat |= 0b1000;
+
 #ifdef UMAIIDX_LIGHT_MUX_GAMEBTN
     led15070_mux_uart_tx((uint8_t*)&_newstat, 2);
 #endif
